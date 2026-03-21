@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Home Support (CHSP)",
+    "description": "General home support services for eligible older Victorians.",
+    "needs": ["home_help", "domestic_assistance", "social_support"],
+    "eligibility": {
+      "age_min": 65,
+      "state": "VIC",
+      "atsi": false
+    },
+    "source_url": "https://www.example.gov.au/chsp",
+    "active": true
+  },
+  {
+    "id": 2,
+    "name": "NDIS Specialist Support",
+    "description": "Specialist disability support that requires NDIS eligibility.",
+    "needs": ["personal_care", "transport"],
+    "eligibility": {
+      "has_disability": true,
+      "state": "VIC"
+    },
+    "source_url": "https://www.example.gov.au/ndis",
+    "active": true
+  },
+  {
+    "id": 3,
+    "name": "General Access Support",
+    "description": "Low-level supports open to all Victorian residents.",
+    "needs": ["information", "referral"],
+    "eligibility": {
+      "state": "VIC"
+    },
+    "source_url": "https://www.example.gov.au/general-support",
+    "active": true
+  }
+]

@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Verified Healthcare Providers Schema",
+  "description": "Schema for manually verified Victorian healthcare providers",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "name", "type", "suburb", "postcode", "website", "services"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^VIC_[0-9]{3,4}$",
+        "description": "Unique identifier (e.g., VIC_001 through VIC_9999)"
+      },
+      "name": {
+        "type": "string",
+        "minLength": 3,
+        "description": "Official provider name"
+      },
+      "type": {
+        "type": "string",
+        "enum": ["gp_clinic", "community_health", "hospital", "allied_health", "specialty_clinic"],
+        "description": "Provider type classification"
+      },
+      "address": {
+        "type": "string",
+        "description": "Street address (optional, but recommended)"
+      },
+      "suburb": {
+        "type": "string",
+        "description": "Suburb or regional area"
+      },
+      "postcode": {
+        "type": "string",
+        "pattern": "^[0-9]{4}$",
+        "description": "Victorian postcode (e.g., 3000)"
+      },
+      "lat": {
+        "type": "number",
+        "description": "Latitude coordinate (optional)"
+      },
+      "lon": {
+        "type": "number",
+        "description": "Longitude coordinate (optional)"
+      },
+      "website": {
+        "type": "string",
+        "format": "uri",
+        "description": "Official website URL"
+      },
+      "phone": {
+        "type": "string",
+        "description": "Contact phone number (optional)"
+      },
+      "abn": {
+        "type": "string",
+        "pattern": "^[0-9]{11}$",
+        "description": "Australian Business Number (optional, 11 digits)"
+      },
+      "bulk_billing": {
+        "type": "boolean",
+        "description": "Whether bulk billing is available (if applicable)"
+      },
+      "telehealth_available": {
+        "type": "boolean",
+        "description": "Whether telehealth services are available"
+      },
+      "hours": {
+        "type": "object",
+        "properties": {
+          "monday": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$|^closed$" },
+          "tuesday": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$|^closed$" },
+          "wednesday": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$|^closed$" },
+          "thursday": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$|^closed$" },
+          "friday": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$|^closed$" },
+          "saturday": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$|^closed$" },
+          "sunday": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$|^closed$" }
+        },
+        "description": "Operating hours by day (optional)"
+      },
+      "services": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["name", "category"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Service name as listed on provider website"
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "general_practice",
+                "urgent_care",
+                "allied_health",
+                "mental_health",
+                "alcohol_drug",
+                "womens_health",
+                "mens_health",
+                "sexual_health",
+                "aboriginal_health",
+                "aged_care",
+                "disability_support"
+              ],
+              "description": "Step 2 service category mapping"
+            },
+            "notes": {
+              "type": "string",
+              "description": "Additional notes (e.g., 'By appointment only', 'Telehealth available')"
+            }
+          }
+        },
+        "description": "List of services offered"
+      },
+      "data_source": {
+        "type": "string",
+        "enum": ["verified_manual", "skip_au", "healthdirect", "provider_website", "local_directory"],
+        "description": "Where provider information was sourced"
+      },
+      "collection_date": {
+        "type": "string",
+        "format": "date",
+        "description": "Date information was collected (YYYY-MM-DD)"
+      },
+      "collection_notes": {
+        "type": "string",
+        "description": "Notes about data collection method and any limitations"
+      }
+    }
+  }
+}

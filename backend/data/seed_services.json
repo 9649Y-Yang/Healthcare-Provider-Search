@@ -1,0 +1,529 @@
+[
+  {
+    "category": "Primary Care & General Practice",
+    "name": "General Practice (GP) Services",
+    "description": "Routine healthcare, scripts, vaccinations, preventive care and specialist referrals.",
+    "needs": ["general_practice", "prescriptions", "preventive_care", "referrals"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["general practitioner", "medical centre", "gp clinic"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "GP care is a core entry point for Victorian healthcare services.",
+    "active": true
+  },
+  {
+    "category": "Primary Care & General Practice",
+    "name": "After-hours medical services",
+    "description": "Out-of-hours medical advice and non-emergency clinic support when your regular GP is unavailable.",
+    "needs": ["after_hours", "general_practice", "urgent_care"],
+    "eligibility": {
+      "urgent_non_life_threatening": true,
+      "emergency_now": false
+    },
+    "provider_queries": ["after hours doctor", "after hours medical clinic", "urgent care clinic"],
+    "source_url": "https://www.betterhealth.vic.gov.au/health/servicesandsupport/after-hours-healthcare-options",
+    "source_summary": "Victoria outlines after-hours options for urgent but non-emergency care.",
+    "active": true
+  },
+  {
+    "category": "Urgent & Emergency Care",
+    "name": "Victorian Urgent Care Clinic",
+    "description": "Urgent but non-life-threatening illness or injury with no appointment or referral needed.",
+    "needs": ["urgent_care", "minor_injury", "infection", "after_hours"],
+    "eligibility": {
+      "urgent_non_life_threatening": true,
+      "emergency_now": false
+    },
+    "provider_queries": ["urgent care clinic", "priority primary care centre"],
+    "source_url": "https://www.betterhealth.vic.gov.au/urgent-care-services",
+    "source_summary": "Urgent care clinics are for urgent, non-life-threatening conditions.",
+    "active": true
+  },
+  {
+    "category": "Urgent & Emergency Care",
+    "name": "Chemist Care Now",
+    "description": "Participating pharmacies provide treatment for selected conditions without needing a GP appointment.",
+    "needs": ["urgent_care", "pharmacy_support", "minor_condition"],
+    "eligibility": {
+      "urgent_non_life_threatening": true,
+      "emergency_now": false
+    },
+    "provider_queries": ["chemist care now", "pharmacy clinic", "community pharmacy"],
+    "source_url": "https://www.betterhealth.vic.gov.au/chemist-care-now",
+    "source_summary": "Chemist Care Now offers fast care pathways for selected lower-acuity conditions.",
+    "active": true
+  },
+  {
+    "category": "Community & Allied Health Services",
+    "name": "Community Health Centre services",
+    "description": "Local multidisciplinary services including nursing, allied health, counselling and chronic condition support.",
+    "needs": ["community_health", "allied_health", "chronic_condition_support"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["community health centre", "community health service"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Community health centres deliver place-based multidisciplinary care in Victoria.",
+    "active": true
+  },
+  {
+    "category": "Community & Allied Health Services",
+    "name": "Physiotherapy services",
+    "description": "Rehabilitation and movement support for injury, pain and functional recovery.",
+    "needs": ["physiotherapy", "rehabilitation", "pain_management"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["physiotherapist", "physio clinic", "physical therapy"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Physiotherapy is a common allied health pathway in community and private settings.",
+    "active": true
+  },
+  {
+    "category": "Community & Allied Health Services",
+    "name": "Occupational therapy services",
+    "description": "Support for independence in daily activities, home setup and functional participation.",
+    "needs": ["occupational_therapy", "daily_living_support", "rehabilitation"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["occupational therapist", "occupational therapy clinic"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "OT services support people with functional limitations and everyday participation goals.",
+    "active": true
+  },
+  {
+    "category": "Community & Allied Health Services",
+    "name": "Speech pathology services",
+    "description": "Assessment and therapy for speech, language, communication and swallowing concerns.",
+    "needs": ["speech_pathology", "communication_support", "allied_health"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["speech pathologist", "speech therapy clinic"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Speech pathology is part of allied health care across age groups.",
+    "active": true
+  },
+  {
+    "category": "Community & Allied Health Services",
+    "name": "Dietitian services",
+    "description": "Nutrition assessment and diet planning for chronic conditions and preventive health.",
+    "needs": ["dietitian", "nutrition", "chronic_condition_support"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["dietitian", "nutrition clinic"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Dietitian support is available through allied health and primary care pathways.",
+    "active": true
+  },
+  {
+    "category": "Community & Allied Health Services",
+    "name": "Podiatry services",
+    "description": "Foot and lower-limb care including pain, mobility and diabetes-related foot health.",
+    "needs": ["podiatry", "foot_care", "allied_health"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["podiatrist", "podiatry clinic", "foot care clinic"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Podiatry is a frequent allied health pathway for mobility and chronic foot issues.",
+    "active": true
+  },
+  {
+    "category": "Disability Support & NDIS",
+    "name": "NDIS access and eligibility pathway",
+    "description": "Pathway for people seeking NDIS access based on age, residency and disability-related eligibility criteria.",
+    "needs": ["ndis", "disability_support", "assessment"],
+    "eligibility": {
+      "age_min": 9,
+      "age_max": 65,
+      "has_disability": true,
+      "permanent_impairment": true,
+      "reduced_functional_capacity": true,
+      "seeking_ndis_access": true,
+      "needs_support_at_home": true,
+      "lives_in_australia": true,
+      "australian_resident": true
+    },
+    "provider_queries": ["NDIS office", "NDIS local area coordinator", "disability support service"],
+    "source_url": "https://www.ndis.gov.au/understanding/supports-funded-ndis#what-is-an-ndis-support",
+    "source_summary": "NDIS supports must relate to disability and meet access and support criteria under NDIS rules.",
+    "active": true
+  },
+  {
+    "category": "Disability Support & NDIS",
+    "name": "NDIS therapy supports",
+    "description": "Evidence-based therapy supports delivered by qualified allied health professionals to build independence and participation.",
+    "needs": ["ndis", "therapy", "personal_care", "community_participation", "therapy_supports", "allied_health"],
+    "eligibility": {
+      "has_disability": true,
+      "permanent_impairment": true,
+      "reduced_functional_capacity": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["NDIS therapy supports", "occupational therapy clinic", "speech pathology", "behaviour support practitioner"],
+    "source_url": "https://www.ndis.gov.au/understanding/supports-funded-ndis/therapy-supports",
+    "source_summary": "Therapy supports are funded when they are disability-related and meet NDIS support requirements.",
+    "active": true
+  },
+  {
+    "category": "Disability Support & NDIS",
+    "name": "NDIS disability-related health and daily supports",
+    "description": "Disability-related health supports (for example continence, wound care or dysphagia), assistive technology and daily living supports.",
+    "needs": ["disability_support", "assistive_technology", "home_support", "daily_living_support", "disability_related_health_supports"],
+    "eligibility": {
+      "has_disability": true,
+      "permanent_impairment": true,
+      "reduced_functional_capacity": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["NDIS disability support provider", "assistive technology provider", "supported independent living", "disability-related health support"],
+    "source_url": "https://www.ndis.gov.au/understanding/supports-funded-ndis/disability-related-health-supports",
+    "source_summary": "Disability-related health supports can be funded when they relate to functional impact and disability support goals.",
+    "active": true
+  },
+  {
+    "category": "Disability Support & NDIS",
+    "name": "NDIS behaviour support",
+    "description": "Positive behaviour support pathways for participants with behaviours of concern, including specialist assessment and planning.",
+    "needs": ["disability_support", "ndis", "behaviour_support", "therapy_supports"],
+    "eligibility": {
+      "has_disability": true,
+      "permanent_impairment": true,
+      "reduced_functional_capacity": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["NDIS behaviour support practitioner", "positive behaviour support", "NDIS specialist behaviour support"],
+    "source_url": "https://www.ndis.gov.au/understanding/supports-funded-ndis",
+    "source_summary": "Behaviour support is a recognised NDIS support type under official guidance.",
+    "active": true
+  },
+  {
+    "category": "Disability Support & NDIS",
+    "name": "NDIS social and recreation supports",
+    "description": "Supports that help participants build social connection, community participation and recreational engagement.",
+    "needs": ["disability_support", "ndis", "social_recreation_supports", "community_participation"],
+    "eligibility": {
+      "has_disability": true,
+      "permanent_impairment": true,
+      "reduced_functional_capacity": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["NDIS community participation", "NDIS social support", "NDIS recreation support"],
+    "source_url": "https://www.ndis.gov.au/understanding/supports-funded-ndis",
+    "source_summary": "Social and recreation supports are included in NDIS guideline materials.",
+    "active": true
+  },
+  {
+    "category": "Disability Support & NDIS",
+    "name": "NDIS work and employment supports",
+    "description": "Support to help participants pursue work goals, including job preparation and workplace support pathways.",
+    "needs": ["disability_support", "ndis", "employment_supports", "daily_living_support"],
+    "eligibility": {
+      "has_disability": true,
+      "permanent_impairment": true,
+      "reduced_functional_capacity": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["NDIS employment support", "supported employment", "disability employment support service"],
+    "source_url": "https://www.ndis.gov.au/understanding/supports-funded-ndis/supports-employment",
+    "source_summary": "Supports in employment are covered in official NDIS supports guidance.",
+    "active": true
+  },
+  {
+    "category": "Disability Support & NDIS",
+    "name": "NDIS supported independent living pathways",
+    "description": "Housing and daily living support pathways including supported independent living and related in-home assistance.",
+    "needs": ["disability_support", "ndis", "supported_independent_living", "home_support", "daily_living_support"],
+    "eligibility": {
+      "has_disability": true,
+      "permanent_impairment": true,
+      "reduced_functional_capacity": true,
+      "needs_support_at_home": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["NDIS supported independent living", "SIL provider", "NDIS home and living supports"],
+    "source_url": "https://www.ndis.gov.au/understanding/supports-funded-ndis",
+    "source_summary": "Supported independent living and home supports are part of NDIS support pathways.",
+    "active": true
+  },
+  {
+    "category": "Aged Care & Support",
+    "name": "My Aged Care assessment",
+    "description": "Entry assessment for government-subsidised aged care services.",
+    "needs": ["aged_care", "assessment", "home_support"],
+    "eligibility": {
+      "age_min": 65,
+      "atsi_age_min": 50,
+      "needs_support_at_home": true,
+      "medicare_card": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["my aged care", "aged care assessment", "ACAT"],
+    "source_url": "https://www.myagedcare.gov.au/apply-online",
+    "source_summary": "Assessment-first process for aged care eligibility and support planning.",
+    "active": true
+  },
+  {
+    "category": "Aged Care & Support",
+    "name": "Home care package providers",
+    "description": "In-home aged care services such as personal care, domestic help and nursing support.",
+    "needs": ["aged_care", "home_support", "personal_care"],
+    "eligibility": {
+      "age_min": 65,
+      "atsi_age_min": 50,
+      "needs_support_at_home": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["home care package provider", "home care provider", "aged care at home"],
+    "source_url": "https://www.myagedcare.gov.au/aged-care-home",
+    "source_summary": "Home care packages support older people to remain safely at home.",
+    "active": true
+  },
+  {
+    "category": "Aged Care & Support",
+    "name": "Residential aged care homes",
+    "description": "24/7 residential support and nursing for older people with higher care needs.",
+    "needs": ["aged_care", "residential_care", "nursing_support"],
+    "eligibility": {
+      "age_min": 65,
+      "atsi_age_min": 50,
+      "needs_support_at_home": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["residential aged care", "nursing home", "aged care facility"],
+    "source_url": "https://www.myagedcare.gov.au/aged-care-homes",
+    "source_summary": "Residential care pathway for people who can no longer live safely at home.",
+    "active": true
+  },
+  {
+    "category": "Aged Care & Support",
+    "name": "Respite aged care",
+    "description": "Short-term care options to support carers and provide temporary cover.",
+    "needs": ["aged_care", "respite", "carer_support"],
+    "eligibility": {
+      "age_min": 65,
+      "atsi_age_min": 50,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["respite aged care", "short term aged care", "carer respite"],
+    "source_url": "https://www.myagedcare.gov.au/short-term-care",
+    "source_summary": "Respite pathways provide short-term care when regular carers need a break.",
+    "active": true
+  },
+  {
+    "category": "Mental Health & Wellbeing",
+    "name": "headspace youth mental health support",
+    "description": "Mental health support for young people through centres and online services.",
+    "needs": ["mental_health", "counselling", "youth_support"],
+    "eligibility": {
+      "age_min": 12,
+      "age_max": 25,
+      "mental_health_concern": true
+    },
+    "provider_queries": ["headspace centre", "headspace", "youth mental health service"],
+    "source_url": "https://www.headspace.org.au/explore-topics/for-young-people/mental-ill-health/",
+    "source_summary": "headspace targets young people aged 12 to 25 for mental health support.",
+    "active": true
+  },
+  {
+    "category": "Mental Health & Wellbeing",
+    "name": "Mental Health and Wellbeing Locals (26+)",
+    "description": "Community mental health and wellbeing services for adults aged 26 years and over.",
+    "needs": ["mental_health", "wellbeing", "community_support"],
+    "eligibility": {
+      "age_min": 26,
+      "mental_health_concern": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["mental health wellbeing local", "community mental health"],
+    "source_url": "https://www.betterhealth.vic.gov.au/mental-health-wellbeing-locals",
+    "source_summary": "Free Victorian community mental health and wellbeing support for adults 26+.",
+    "active": true
+  },
+  {
+    "category": "Mental Health & Wellbeing",
+    "name": "Public mental health and counselling",
+    "description": "GP and community pathways for people needing counselling, assessment and treatment support.",
+    "needs": ["mental_health", "counselling", "psychology", "psychiatry"],
+    "eligibility": {
+      "mental_health_concern": true,
+      "diagnosed_mental_health_condition": true,
+      "age_min": 18,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["community mental health service", "mental health clinic", "psychology clinic"],
+    "source_url": "https://www.healthdirect.gov.au/mental-health-treatment-plan",
+    "source_summary": "Mental health treatment plan pathway is linked to diagnosis, GP assessment and referral options.",
+    "active": true
+  },
+  {
+    "category": "Mental Health & Wellbeing",
+    "name": "Crisis Assessment and Treatment (CAT)",
+    "description": "24/7 crisis response for acute mental health emergencies and safety concerns.",
+    "needs": ["mental_health", "crisis_support", "emergency_support"],
+    "eligibility": {
+      "mental_health_concern": true,
+      "emergency_now": true,
+      "lives_in_australia": true
+    },
+    "provider_queries": ["mental health crisis assessment", "CAT team", "psychiatric crisis"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Victoria includes crisis services for urgent mental health episodes.",
+    "active": true
+  },
+  {
+    "category": "Alcohol & Drug Services",
+    "name": "Alcohol and other drug treatment",
+    "description": "Treatment programs for alcohol or drug dependence, including counselling and rehab pathways.",
+    "needs": ["alcohol_drug", "addiction_support", "counselling"],
+    "eligibility": {
+      "lives_in_australia": true,
+      "alcohol_or_drug_concern": true
+    },
+    "provider_queries": ["alcohol and drug treatment", "AOD treatment", "drug and alcohol counselling"],
+    "source_url": "https://www.betterhealth.vic.gov.au/health/servicesandsupport/alcohol-and-drug-treatments-and-programs",
+    "source_summary": "Victoria provides alcohol and other drug support pathways through treatment and counselling services.",
+    "active": true
+  },
+  {
+    "category": "Alcohol & Drug Services",
+    "name": "DirectLine alcohol and drug counselling",
+    "description": "24/7 confidential phone counselling for alcohol and other drug issues.",
+    "needs": ["alcohol_drug", "hotline", "counselling"],
+    "eligibility": {
+      "lives_in_australia": true,
+      "alcohol_or_drug_concern": true
+    },
+    "provider_queries": ["DirectLine Victoria", "AOD hotline", "drug and alcohol helpline"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "DirectLine is part of Victoria's alcohol and drug support system.",
+    "active": true
+  },
+  {
+    "category": "Women's & Reproductive Health Services",
+    "name": "Mobile women's health clinic",
+    "description": "Free women’s health outreach for women, girls and gender-diverse people in regional and rural Victoria.",
+    "needs": ["womens_health", "sexual_health", "reproductive_health", "screening"],
+    "eligibility": {
+      "gender": ["female", "non_binary", "other"],
+      "region_type": "regional_rural"
+    },
+    "provider_queries": ["mobile women's health clinic", "women's health clinic", "regional women's health"],
+    "source_url": "https://www.betterhealth.vic.gov.au/health/services-and-support/mobile-womens-health-clinic",
+    "source_summary": "Mobile clinic model increases access in regional and rural Victoria.",
+    "active": true
+  },
+    {
+      "category": "Women's & Reproductive Health Services",
+      "name": "Cervical screening and preventive women’s health",
+      "description": "Cervical screening, preventive checks and women-focused primary care support.",
+      "needs": ["womens_health", "screening", "preventive_care", "general_practice"],
+      "eligibility": {
+        "gender": ["female", "non_binary"],
+        "lives_in_australia": true
+      },
+      "provider_queries": ["women's health clinic", "cervical screening clinic", "women's GP clinic"],
+      "source_url": "https://www.health.vic.gov.au/health-programs/cervical-screening",
+      "source_summary": "Cervical screening and preventive women’s care are core women’s health pathways in Victoria.",
+      "active": true
+    },
+    {
+      "category": "Women's & Reproductive Health Services",
+      "name": "Contraception and reproductive planning",
+      "description": "Contraception advice, reproductive planning and related women’s health consultations.",
+      "needs": ["womens_health", "reproductive_health", "contraception", "sexual_health"],
+      "eligibility": {
+        "gender": ["female", "non_binary"],
+        "lives_in_australia": true
+      },
+      "provider_queries": ["contraception clinic", "reproductive health clinic", "family planning clinic"],
+      "source_url": "https://www.betterhealth.vic.gov.au/health/healthyliving/contraception-choices",
+      "source_summary": "Contraception and reproductive planning are common women’s health service pathways.",
+      "active": true
+    },
+  {
+    "category": "Sexual Health Services",
+    "name": "Family planning and sexual health clinic",
+    "description": "Contraception, sexual health checks, STI screening and reproductive counselling.",
+    "needs": ["sexual_health", "reproductive_health", "screening", "contraception"],
+    "eligibility": {
+      "lives_in_australia": true
+    },
+    "provider_queries": ["family planning clinic", "sexual health clinic", "STI clinic"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Sexual and reproductive health pathways include family planning and STI services.",
+    "active": true
+  },
+    {
+      "category": "Sexual Health Services",
+      "name": "HIV prevention and sexual health advice",
+      "description": "Prevention-focused sexual health care including PrEP/PEP advice and risk-reduction support.",
+      "needs": ["sexual_health", "screening", "preventive_care", "community_support"],
+      "eligibility": {
+        "lives_in_australia": true
+      },
+      "provider_queries": ["sexual health clinic prep", "HIV prevention clinic", "sexual health counselling"],
+      "source_url": "https://www.health.vic.gov.au/infectious-diseases/hiv-pre-exposure-prophylaxis-prep",
+      "source_summary": "HIV prevention and sexual health advice are standard components of sexual health service delivery.",
+      "active": true
+    },
+  {
+    "category": "Men's Health Services",
+    "name": "Men's health clinic",
+    "description": "Targeted men's health support including screening, sexual health and preventive checks.",
+    "needs": ["mens_health", "sexual_health", "screening", "preventive_care"],
+    "eligibility": {
+      "gender": ["male"],
+      "lives_in_australia": true
+    },
+    "provider_queries": ["men's health clinic", "urology clinic", "men's sexual health"],
+    "source_url": "https://www.healthdirect.gov.au/mens-health",
+    "source_summary": "Healthdirect outlines men's health topics and support pathways.",
+    "active": true
+  },
+    {
+      "category": "Men's Health Services",
+      "name": "Men’s sexual and reproductive health",
+      "description": "Male-focused sexual and reproductive health support including screening and preventive care.",
+      "needs": ["mens_health", "sexual_health", "screening", "preventive_care"],
+      "eligibility": {
+        "gender": "male",
+        "lives_in_australia": true
+      },
+      "provider_queries": ["men's sexual health clinic", "andrology clinic", "men's reproductive health"],
+      "source_url": "https://www.betterhealth.vic.gov.au/health/conditionsandtreatments/mens-health",
+      "source_summary": "Men’s sexual and reproductive health is an established men’s health care pathway.",
+      "active": true
+    },
+  {
+    "category": "Aboriginal & Culturally Safe Services",
+    "name": "Aboriginal health service",
+    "description": "Culturally safe, community-controlled holistic care for Aboriginal and Torres Strait Islander people.",
+    "needs": ["aboriginal_health", "culturally_safe_care", "social_and_emotional_wellbeing"],
+    "eligibility": {
+      "atsi": true
+    },
+    "provider_queries": ["Aboriginal health service", "Aboriginal community controlled health service"],
+    "source_url": "https://www.betterhealth.vic.gov.au/servicesandsupport",
+    "source_summary": "Aboriginal health services provide culturally safe community-led care.",
+    "active": true
+  },
+  {
+    "category": "Aboriginal & Culturally Safe Services",
+    "name": "Aboriginal women's health clinic",
+    "description": "Specialised culturally safe women’s health support for Aboriginal and Torres Strait Islander women.",
+    "needs": ["aboriginal_health", "womens_health", "culturally_safe_care"],
+    "eligibility": {
+      "atsi": true,
+      "gender": ["female", "non_binary", "other"]
+    },
+    "provider_queries": ["Aboriginal women's health clinic", "Aboriginal women's health service"],
+    "source_url": "https://www.betterhealth.vic.gov.au/health/services-and-support/aboriginal-womens-health-clinic",
+    "source_summary": "Victoria lists dedicated Aboriginal women's health pathways.",
+    "active": true
+  }
+]

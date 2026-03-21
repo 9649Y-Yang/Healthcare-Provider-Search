@@ -1,0 +1,26 @@
+{
+  "name": "healthcare-provider-search-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only --loader ts-node/esm src/index.ts",
+    "seed": "ts-node-dev --respawn --transpile-only --loader ts-node/esm src/seed.ts",
+    "check:step2-consistency": "node ../scripts/validate-step2-consistency.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "sql.js": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.22",
+    "@types/node": "^20.11.2",
+    "@types/sql.js": "^1.4.9",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}

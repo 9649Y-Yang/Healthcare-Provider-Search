@@ -1,0 +1,12 @@
+{
+  "name": "healthcare-provider-search-scripts",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "download:ndis": "node download-ndis-providers-playwright.js"
+  },
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
