@@ -114,6 +114,13 @@
         },
         "description": "List of services offered"
       },
+      "needs": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Normalized need tags used by Step 3 matching (e.g., occupational_therapy, disability_support, ndis)"
+      },
       "data_source": {
         "type": "string",
         "enum": ["verified_manual", "skip_au", "healthdirect", "provider_website", "local_directory"],

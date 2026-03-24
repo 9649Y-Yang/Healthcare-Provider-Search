@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import ProviderMap from "./ProviderMap"
 import type { MatchResult, Profile, ProviderSearchResult, Service } from "./types"
 import "./App.css"
@@ -36,6 +36,13 @@ function matchesSupportType(service: Service, supportType: string) {
   return categories.includes(service.category ?? "")
 }
 
+type MapBounds = {
+  north: number
+  south: number
+  east: number
+  west: number
+}
+
 export default function App() {
   const [services, setServices] = useState<Service[]>([])
   const [profile, setProfile] = useState<Profile>({
@@ -69,6 +76,11 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [providerError, setProviderError] = useState<string | null>(null)
   const [providerLoading, setProviderLoading] = useState(false)
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
+  const [mapViewportVersion, setMapViewportVersion] = useState(0)
+  const [appliedViewportVersion, setAppliedViewportVersion] = useState<number | null>(null)
+  const [restrictToMapArea, setRestrictToMapArea] = useState(false)
+  const [providerSearchVersion, setProviderSearchVersion] = useState(0)
 
   const eligibleSupportNeedOptions = useMemo(() => {
     return SUPPORT_NEED_OPTIONS.filter((option) =>
@@ -124,6 +136,48 @@ export default function App() {
     })
     return Array.from(groups.entries())
   }, [filteredMatches])
+
+  const providersInCurrentArea = useMemo(() => {
+    if (!providerResult) return []
+    if (!mapBounds) return providerResult.providers
+
+    return providerResult.providers.filter((provider) => {
+      return (
+        provider.lat <= mapBounds.north &&
+        provider.lat >= mapBounds.south &&
+        provider.lon <= mapBounds.east &&
+        provider.lon >= mapBounds.west
+      )
+    })
+  }, [providerResult, mapBounds])
+
+  const displayedProviders = useMemo(() => {
+    if (!providerResult) return []
+    return restrictToMapArea ? providersInCurrentArea : providerResult.providers
+  }, [providerResult, restrictToMapArea, providersInCurrentArea])
+
+  const hasPendingMapArea = Boolean(
+    providerResult &&
+      mapBounds &&
+      appliedViewportVersion !== null &&
+      mapViewportVersion !== appliedViewportVersion,
+  )
+
+  const handleMapBoundsChange = useCallback((bounds: MapBounds) => {
+    setMapBounds(bounds)
+    setMapViewportVersion((current) => current + 1)
+  }, [])
+
+  const applyMapAreaFilter = () => {
+    if (!providerResult || !mapBounds) return
+    setRestrictToMapArea(true)
+    setAppliedViewportVersion(mapViewportVersion)
+  }
+
+  const clearMapAreaFilter = () => {
+    setRestrictToMapArea(false)
+    setAppliedViewportVersion(mapViewportVersion)
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -212,6 +266,10 @@ export default function App() {
     setProviderSearchStarted(true)
     setProviderError(null)
     setProviderResult(null)
+    setMapBounds(null)
+    setMapViewportVersion(0)
+    setAppliedViewportVersion(null)
+    setRestrictToMapArea(false)
 
     if (!/^\d{4}$/.test(postcode)) {
       setProviderError("Enter a valid 4-digit Victorian postcode.")
@@ -234,6 +292,8 @@ export default function App() {
         throw new Error(data?.error || `Provider search failed: ${res.status}`)
       }
       setProviderResult(data)
+      setAppliedViewportVersion(0)
+      setProviderSearchVersion((current) => current + 1)
     } catch (ex) {
       setProviderError(String(ex))
     } finally {
@@ -991,15 +1051,37 @@ export default function App() {
 
                   {providerResult.providers.length > 0 && (
                 <div className="providerResults">
+                  <div className="mapAreaControls">
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={applyMapAreaFilter}
+                      disabled={!mapBounds || !providerResult || (!hasPendingMapArea && restrictToMapArea)}
+                    >
+                      Search in this area
+                    </button>
+                    {restrictToMapArea && (
+                      <button type="button" className="secondary" onClick={clearMapAreaFilter}>
+                        Show all results
+                      </button>
+                    )}
+                  </div>
                   <div className="providerSummary info">
-                    Showing {providerResult.providers.length} providers within {providerResult.center.radiusKm ?? radiusKm} km of {providerResult.center.displayName}.
+                    Showing {displayedProviders.length} of {providerResult.providers.length} providers within {providerResult.center.radiusKm ?? radiusKm} km of {providerResult.center.displayName}.
+                    {restrictToMapArea && <span> Filtered to current map area.</span>}
+                    {hasPendingMapArea && <span> Move/zoom applied — click “Search in this area” to refresh the list.</span>}
                     {providerResult.source_sequence && providerResult.source_sequence.length > 0 && (
                       <span> Search order: {providerResult.source_sequence.join(" → ")}.</span>
                     )}
                   </div>
-                  <ProviderMap center={providerResult.center} providers={providerResult.providers} />
+                  <ProviderMap
+                    center={providerResult.center}
+                    providers={displayedProviders}
+                    fitToResultsVersion={providerSearchVersion}
+                    onBoundsChange={handleMapBoundsChange}
+                  />
                   <div className="providerList">
-                    {providerResult.providers.map((provider) => (
+                    {displayedProviders.map((provider) => (
                       <article key={provider.id} className="providerCard">
                         <h3>{provider.name}</h3>
                         <p>{provider.address}</p>

@@ -23,6 +23,7 @@ type VerifiedProviderRecord = {
   collection_date?: string
   abn?: string
   services: VerifiedProviderService[]
+  needs?: string[]
 }
 
 const VERIFIED_PROVIDERS_FILE = path.join(process.cwd(), "data", "verified_providers.json")
@@ -42,7 +43,27 @@ const CATEGORY_LABEL_TO_CODE: Record<string, string> = {
   "Disability Support & NDIS": "disability_support",
 }
 
-const KNOWN_CODES = new Set(Object.values(CATEGORY_LABEL_TO_CODE))
+const GENERIC_SERVICE_NEEDS = new Set([
+  "disability_support",
+  "ndis",
+  "allied_health",
+  "aged_care",
+  "mental_health",
+  "general_practice",
+  "urgent_care",
+  "womens_health",
+  "mens_health",
+  "sexual_health",
+  "aboriginal_health",
+  "community_support",
+  "home_support",
+  "daily_living_support",
+])
+
+function normalizedSpecificNeedsForService(service: Service) {
+  const normalized = (service.needs ?? []).map((need) => normalizeNeed(String(need))).filter(Boolean)
+  return normalized.filter((need) => !GENERIC_SERVICE_NEEDS.has(need))
+}
 
 let cachedRecords: VerifiedProviderRecord[] | null = null
 let lastLoadTime = 0
@@ -79,30 +100,86 @@ function loadVerifiedRecords(): VerifiedProviderRecord[] {
   }
 }
 
-function selectedServicesToCategoryCodes(selectedServices: Service[]) {
+function selectedServicesToRequestedNeeds(selectedServices: Service[]) {
   const requested = new Set<string>()
 
   selectedServices.forEach((service) => {
+    const specificNeeds = normalizedSpecificNeedsForService(service)
+    if (specificNeeds.length > 0) {
+      specificNeeds.forEach((need) => requested.add(need))
+      return
+    }
+
+    const primaryNeed = normalizeNeed(String(service.needs?.[0] ?? ""))
+    if (primaryNeed) requested.add(primaryNeed)
+
     const category = service.category?.trim()
     if (category && CATEGORY_LABEL_TO_CODE[category]) {
       requested.add(CATEGORY_LABEL_TO_CODE[category])
     }
-
-    if (category && KNOWN_CODES.has(category)) {
-      requested.add(category)
-    }
-
-    service.needs.forEach((need) => {
-      if (KNOWN_CODES.has(need)) {
-        requested.add(need)
-      }
-    })
   })
 
   return requested
 }
 
-function recordToProvider(record: VerifiedProviderRecord, matchedServices: string[], distanceKm: number): Provider {
+function normalizeNeed(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+}
+
+function deriveNeedsFromServices(services: VerifiedProviderService[] = []): string[] {
+  const needs = new Set<string>()
+
+  services.forEach((service) => {
+    const category = String(service.category || "").trim()
+    const serviceName = String(service.name || "")
+    const lcName = serviceName.toLowerCase()
+
+    if (category) needs.add(category)
+    if (category === "disability_support") needs.add("ndis")
+
+    if (lcName.includes("occupational")) needs.add("occupational_therapy")
+    if (lcName.includes("speech")) needs.add("speech_pathology")
+    if (lcName.includes("physio")) needs.add("physiotherapy")
+    if (lcName.includes("diet")) needs.add("dietitian")
+    if (lcName.includes("podiat")) needs.add("podiatry")
+    if (lcName.includes("behaviour")) needs.add("behaviour_support")
+    if (lcName.includes("therapy")) needs.add("therapy_supports")
+    if (lcName.includes("nursing")) needs.add("nursing_support")
+    if (lcName.includes("assistive")) needs.add("assistive_technology")
+    if (lcName.includes("daily activit") || lcName.includes("daily life")) {
+      needs.add("daily_living_support")
+    }
+    if (lcName.includes("supported independent living") || /\bsil\b/i.test(serviceName)) {
+      needs.add("supported_independent_living")
+      needs.add("home_support")
+    }
+  })
+
+  return Array.from(needs)
+}
+
+function providerNeeds(record: VerifiedProviderRecord) {
+  const explicitNeeds = Array.isArray(record.needs)
+    ? record.needs.map((need) => normalizeNeed(String(need))).filter(Boolean)
+    : []
+
+  if (explicitNeeds.length > 0) {
+    return new Set(explicitNeeds)
+  }
+
+  return new Set(deriveNeedsFromServices(record.services).map(normalizeNeed).filter(Boolean))
+}
+
+function recordToProvider(
+  record: VerifiedProviderRecord,
+  matchedServices: string[],
+  matchedNeeds: string[],
+  distanceKm: number,
+): Provider {
   const query = `${record.name} ${record.address} ${record.suburb ?? ""} ${record.postcode ?? ""}`.trim()
   const lat = Number(record.lat)
   const lon = Number(record.lon)
@@ -115,6 +192,7 @@ function recordToProvider(record: VerifiedProviderRecord, matchedServices: strin
     lon,
     category: record.type,
     matched_services: matchedServices,
+    matched_needs: matchedNeeds,
     distance_km: Math.round(distanceKm * 10) / 10,
     google_maps_url:
       "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query),
@@ -141,18 +219,39 @@ export async function searchVerifiedProviders(
     return []
   }
 
-  const requestedCategories = selectedServicesToCategoryCodes(selectedServices)
-  if (requestedCategories.size === 0) {
+  const requestedNeeds = selectedServicesToRequestedNeeds(selectedServices)
+  if (requestedNeeds.size === 0) {
     return []
   }
 
   const providers = records
     .map((record) => {
-      const providerCategories = Array.from(
-        new Set((record.services ?? []).map((service) => service.category).filter(Boolean)),
+      const normalizedRequestedNeeds = new Set(
+        Array.from(requestedNeeds).map((need) => normalizeNeed(need)).filter(Boolean),
       )
-      const matched = providerCategories.filter((code) => requestedCategories.has(code))
-      if (matched.length === 0) return null
+
+      const currentProviderNeeds = providerNeeds(record)
+      const matchedNeeds = Array.from(normalizedRequestedNeeds).filter((need) =>
+        currentProviderNeeds.has(need),
+      )
+      if (matchedNeeds.length === 0) return null
+
+      const matchedServiceNames = selectedServices
+        .filter((service) => {
+          const specificNeeds = normalizedSpecificNeedsForService(service)
+          if (specificNeeds.length > 0) {
+            return specificNeeds.some((need) => currentProviderNeeds.has(need))
+          }
+
+          const primaryNeed = normalizeNeed(String(service.needs?.[0] ?? ""))
+          if (primaryNeed && currentProviderNeeds.has(primaryNeed)) return true
+
+          const category = service.category?.trim()
+          const mappedCategory = category ? CATEGORY_LABEL_TO_CODE[category] : ""
+          return mappedCategory ? currentProviderNeeds.has(mappedCategory) : false
+        })
+        .map((service) => service.name)
+      if (matchedServiceNames.length === 0) return null
 
       const providerLat = Number(record.lat)
       const providerLon = Number(record.lon)
@@ -161,7 +260,7 @@ export async function searchVerifiedProviders(
       const distanceKm = calculateDistanceKm(lat, lon, providerLat, providerLon)
       if (distanceKm > radiusKm) return null
 
-      return recordToProvider(record, matched, distanceKm)
+      return recordToProvider(record, matchedServiceNames, matchedNeeds, distanceKm)
     })
     .filter((provider): provider is Provider => Boolean(provider))
     .sort((left, right) => left.distance_km - right.distance_km)
@@ -178,7 +277,8 @@ export function getVerifiedProviderById(id: string): Provider | null {
 
   return recordToProvider(
     match,
-    Array.from(new Set((match.services ?? []).map((service) => service.category).filter(Boolean))),
+    Array.from(new Set((match.services ?? []).map((service) => service.name).filter(Boolean))),
+    Array.from(providerNeeds(match)),
     0,
   )
 }

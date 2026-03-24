@@ -25,6 +25,7 @@ const GEOCODE_CACHE_FILE = path.join(__dirname, 'geocode_cache.json');
 const DRY_RUN = process.argv.includes('--dry-run');
 const LIMIT_ARG = process.argv.indexOf('--limit');
 const LIMIT = LIMIT_ARG !== -1 ? parseInt(process.argv[LIMIT_ARG + 1], 10) : Infinity;
+const REPLACE_NDIS = process.argv.includes('--replace-ndis');
 
 // Rate-limit Nominatim: max 1 req/second (OSM policy)
 const GEOCODE_DELAY_MS = 1100;
@@ -80,6 +81,177 @@ const GROUP_TO_CATEGORY = {
   'Mental Health': 'mental_health',
   'Psychosocial Recovery Coaching': 'mental_health',
 };
+
+const BLOCKLIST_NAMES = new Set([
+  'JONES, PATRICK DAVID',
+  'MISS GANJARGAL GALBADRAKH',
+  'MISS SIYU JIANG',
+]);
+
+const BLOCKLIST_WEBSITES = new Set([
+  'infostabilise.com',
+  'www.infostabilise.com',
+  'chartermaxitaxi.com',
+  'www.chartermaxitaxi.com',
+]);
+
+const NON_HEALTH_NAME_KEYWORDS = [
+  'BOOKKEEPING',
+  'ACCOUNTING',
+  'TAXI',
+  'MAXI TAXI',
+  'DRIVING SCHOOL',
+  'TRAMPOLINE',
+  'FURNITURE',
+  'MOWING',
+  'LANDSCAPING',
+  'BUILDING',
+  'CONSTRUCTION',
+  'ASSET MANAGEMENT',
+  'FITNESS',
+  'GYM',
+  'NAPPIES',
+];
+
+const NON_HEALTH_WEBSITE_KEYWORDS = [
+  'bookkeeping',
+  'accounting',
+  'taxi',
+  'trampoline',
+  'furniture',
+  'mowing',
+  'building',
+  'landscaping',
+  'gym',
+  'fitness',
+  'nappies',
+];
+
+const HEALTH_INTENT_KEYWORDS = [
+  'ndis',
+  'disability',
+  'health',
+  'medical',
+  'care',
+  'therapy',
+  'therap',
+  'physio',
+  'psychology',
+  'occupational',
+  'speech',
+  'allied',
+  'clinic',
+];
+
+const ENTITY_KEYWORDS = [
+  'PTY',
+  'LTD',
+  'LIMITED',
+  'INC',
+  'TRUST',
+  'CORP',
+  'CORPORATION',
+  'CLINIC',
+  'CENTRE',
+  'CENTER',
+  'HEALTH',
+  'MEDICAL',
+  'HOSPITAL',
+  'SERVICES',
+  'SUPPORT',
+  'CARE',
+  'ASSOCIATION',
+  'FOUNDATION',
+  'INSTITUTE',
+  'COUNCIL',
+  'COMPANY',
+  'GROUP',
+  'ORGANISATION',
+  'ORGANIZATION',
+  'ABORIGINAL',
+  'COMMUNITY',
+  'THERAPY',
+];
+
+function normalizeNeed(value) {
+  return String(value)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function hasEntityKeyword(name) {
+  const upper = String(name || '').toUpperCase();
+  return ENTITY_KEYWORDS.some((keyword) => new RegExp(`\\b${keyword}\\b`, 'i').test(upper));
+}
+
+function isLikelyPersonalName(name) {
+  const text = String(name || '').trim();
+  if (!text) return false;
+  if (hasEntityKeyword(text)) return false;
+
+  if (/^(Mr|Ms|Mrs|Miss|Dr|Prof)\s+/i.test(text)) return true;
+  if (/^[A-Z][A-Za-z'\-]+,\s+[A-Z][A-Za-z'\-]+(?:\s+[A-Z][A-Za-z'\-]+)?$/i.test(text)) return true;
+
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length >= 2 && words.length <= 3) {
+    const likelyNameWords = words.every((word) => /^[A-Z][a-z'\-]+$/.test(word));
+    if (likelyNameWords) return true;
+  }
+
+  return false;
+}
+
+function parseWebsiteHost(value) {
+  const input = String(value || '').trim();
+  if (!input) return '';
+
+  try {
+    const normalized = /^https?:\/\//i.test(input) ? input : `https://${input}`;
+    return new URL(normalized).hostname.toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
+function hasHealthIntent(text) {
+  const lc = String(text || '').toLowerCase();
+  return HEALTH_INTENT_KEYWORDS.some((keyword) => lc.includes(keyword));
+}
+
+function hasNonHealthSignal(text) {
+  const lc = String(text || '').toLowerCase();
+  return NON_HEALTH_WEBSITE_KEYWORDS.some((keyword) => lc.includes(keyword));
+}
+
+function shouldExcludeProvider(name, website, groups) {
+  const normalized = String(name || '').trim().toUpperCase();
+  if (!normalized) return true;
+  if (BLOCKLIST_NAMES.has(normalized)) return true;
+  if (isLikelyPersonalName(name)) return true;
+
+  const host = parseWebsiteHost(website);
+  if (host && BLOCKLIST_WEBSITES.has(host)) return true;
+
+  const nameHasNonHealthKeyword = NON_HEALTH_NAME_KEYWORDS.some((keyword) =>
+    normalized.includes(keyword),
+  );
+  if (nameHasNonHealthKeyword && !hasHealthIntent(normalized)) {
+    return true;
+  }
+
+  if (host && hasNonHealthSignal(host) && !hasHealthIntent(host)) {
+    return true;
+  }
+
+  const groupText = Array.isArray(groups) ? groups.join(' ') : '';
+  if (nameHasNonHealthKeyword && !hasHealthIntent(groupText)) {
+    return true;
+  }
+
+  return false;
+}
 
 // Fallback: any group not in the map defaults to disability_support
 function groupToCategory(groupName) {
@@ -180,6 +352,50 @@ function inferType(groups) {
   return 'community_health'; // default for NDIS providers
 }
 
+function deriveNeedsFromGroups(groups) {
+  const needs = new Set(['disability_support', 'ndis']);
+
+  for (const group of groups) {
+    const lc = String(group || '').toLowerCase();
+    const mappedCategory = groupToCategory(group);
+    needs.add(mappedCategory);
+
+    if (lc.includes('therapeutic')) needs.add('therapy_supports');
+    if (lc.includes('occupational')) needs.add('occupational_therapy');
+    if (lc.includes('speech')) needs.add('speech_pathology');
+    if (lc.includes('physio')) needs.add('physiotherapy');
+    if (lc.includes('behaviour')) needs.add('behaviour_support');
+    if (lc.includes('community nursing')) needs.add('nursing_support');
+    if (lc.includes('assistive')) needs.add('assistive_technology');
+    if (lc.includes('social') || lc.includes('community participation')) {
+      needs.add('community_participation');
+    }
+    if (lc.includes('daily activit') || lc.includes('daily life')) {
+      needs.add('daily_living_support');
+    }
+    if (lc.includes('supported independent living') || /\bsil\b/i.test(group)) {
+      needs.add('supported_independent_living');
+      needs.add('home_support');
+      needs.add('daily_living_support');
+    }
+    const explicitEmploymentGroups = [
+      'employment assistance',
+      'customised supported employment',
+      'vocational support',
+      'specialised supported employment',
+      'job coaching',
+    ];
+    if (explicitEmploymentGroups.some((keyword) => lc.includes(keyword))) {
+      needs.add('employment_supports');
+    }
+    if (lc.includes('mental health') || lc.includes('psychosocial')) {
+      needs.add('mental_health');
+    }
+  }
+
+  return Array.from(needs).map(normalizeNeed).filter(Boolean);
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 (async () => {
   // 1. Read CSV
@@ -257,7 +473,9 @@ function inferType(groups) {
     const status = COL_STATUS !== -1 ? (fields[COL_STATUS] || '').trim().toLowerCase() : 'approved';
     const pcNum = parseInt(postcode, 10);
 
-    const isVIC = (state === 'VIC') || (pcNum >= 3000 && pcNum <= 3999);
+    const hasVicPostcode = pcNum >= 3000 && pcNum <= 3999;
+    const stateIsCompatible = state === '' || state === 'VIC';
+    const isVIC = hasVicPostcode && stateIsCompatible;
     if (isVIC) {
       if (status === '' || status.includes('approved') || status.includes('active')) {
         rows.push(fields);
@@ -277,7 +495,14 @@ function inferType(groups) {
   }
 
   // 3. Load existing providers
-  const existing = JSON.parse(fs.readFileSync(PROVIDERS_FILE, 'utf8'));
+  const existingRaw = JSON.parse(fs.readFileSync(PROVIDERS_FILE, 'utf8'));
+  const existing = REPLACE_NDIS
+    ? existingRaw.filter((provider) => provider.source !== 'ndis_commission')
+    : existingRaw;
+  if (REPLACE_NDIS) {
+    const removedCount = existingRaw.length - existing.length;
+    console.log(`Replacing NDIS import: removed ${removedCount} previous ndis_commission records before re-import.`);
+  }
   const existingIds = new Set(existing.map((p) => p.id));
   const existingNames = new Set(existing.map((p) => p.name.toLowerCase().trim()));
   const existingAbns = new Set(
@@ -326,6 +551,7 @@ function inferType(groups) {
   let processedCount = 0;
   let skippedDuplicate = 0;
   let skippedNoCoords = 0;
+  let skippedFiltered = 0;
 
   for (const fields of rows) {
     if (processedCount >= LIMIT) break;
@@ -337,6 +563,16 @@ function inferType(groups) {
     const website = COL_WEBSITE !== -1 ? (fields[COL_WEBSITE] || '').trim() : '';
 
     if (!name) continue;
+
+    // Parse registration groups (comma-separated in this CSV)
+    const groups = rawGroups
+      ? rawGroups.split(/\s*,\s*/).map((g) => g.trim()).filter(Boolean)
+      : [];
+
+    if (shouldExcludeProvider(name, website, groups)) {
+      skippedFiltered++;
+      continue;
+    }
 
     // Dedup by name
     if (existingNames.has(name.toLowerCase())) {
@@ -357,11 +593,6 @@ function inferType(groups) {
       skippedNoCoords++;
       continue;
     }
-
-    // Parse registration groups (comma-separated in this CSV)
-    const groups = rawGroups
-      ? rawGroups.split(/\s*,\s*/).map((g) => g.trim()).filter(Boolean)
-      : [];
 
     // Build services array (deduplicated categories)
     const seenCategories = new Set();
@@ -394,6 +625,7 @@ function inferType(groups) {
       ...(website ? { website } : {}),
       ...(abn ? { abn } : {}),
       services,
+      needs: deriveNeedsFromGroups(groups),
       lat: coords.lat,
       lon: coords.lon,
       ndis_registered: true,
@@ -410,6 +642,7 @@ function inferType(groups) {
   console.log(`  New providers to add:  ${newProviders.length}`);
   console.log(`  Skipped (duplicate):   ${skippedDuplicate}`);
   console.log(`  Skipped (no coords):   ${skippedNoCoords}`);
+  console.log(`  Skipped (filtered):    ${skippedFiltered}`);
 
   if (newProviders.length === 0) {
     console.log('Nothing to add. Exiting.');

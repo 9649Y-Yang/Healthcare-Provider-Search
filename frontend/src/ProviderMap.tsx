@@ -12,11 +12,30 @@ type ProviderMapProps = {
     radiusKm?: number
   }
   providers: Provider[]
+  fitToResultsVersion?: number
+  onBoundsChange?: (bounds: {
+    north: number
+    south: number
+    east: number
+    west: number
+  }) => void
 }
 
-export default function ProviderMap({ center, providers }: ProviderMapProps) {
+export default function ProviderMap({
+  center,
+  providers,
+  fitToResultsVersion,
+  onBoundsChange,
+}: ProviderMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
+  const boundsCallbackRef = useRef<typeof onBoundsChange>(onBoundsChange)
+  const markerLayerRef = useRef<L.LayerGroup | null>(null)
+  const lastFitVersionRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    boundsCallbackRef.current = onBoundsChange
+  }, [onBoundsChange])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -26,12 +45,40 @@ export default function ProviderMap({ center, providers }: ProviderMapProps) {
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "&copy; OpenStreetMap contributors",
       }).addTo(mapRef.current)
-    } else {
-      mapRef.current.setView([center.lat, center.lon], 11)
     }
 
     const map = mapRef.current
+
+    const emitBounds = () => {
+      if (!boundsCallbackRef.current) return
+      const bounds = map.getBounds()
+      boundsCallbackRef.current({
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest(),
+      })
+    }
+
+    const handleViewportChange = () => emitBounds()
+    map.on("moveend", handleViewportChange)
+    map.on("zoomend", handleViewportChange)
+
+    emitBounds()
+
+    return () => {
+      map.off("moveend", handleViewportChange)
+      map.off("zoomend", handleViewportChange)
+    }
+  }, [center.lat, center.lon])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    markerLayerRef.current?.remove()
     const layerGroup = L.layerGroup().addTo(map)
+    markerLayerRef.current = layerGroup
 
     const points: L.LatLngExpression[] = [[center.lat, center.lon]]
 
@@ -61,17 +108,26 @@ export default function ProviderMap({ center, providers }: ProviderMapProps) {
         .addTo(layerGroup)
     })
 
-    if (points.length > 1) {
-      map.fitBounds(L.latLngBounds(points), { padding: [24, 24] })
+    const shouldFitToResults =
+      fitToResultsVersion != null && fitToResultsVersion !== lastFitVersionRef.current
+
+    if (shouldFitToResults) {
+      if (points.length > 1) {
+        map.fitBounds(L.latLngBounds(points), { padding: [24, 24] })
+      } else {
+        map.setView([center.lat, center.lon], 11)
+      }
+      lastFitVersionRef.current = fitToResultsVersion ?? null
     }
 
     return () => {
       layerGroup.remove()
     }
-  }, [center, providers])
+  }, [center, providers, fitToResultsVersion])
 
   useEffect(() => {
     return () => {
+      markerLayerRef.current?.remove()
       mapRef.current?.remove()
       mapRef.current = null
     }

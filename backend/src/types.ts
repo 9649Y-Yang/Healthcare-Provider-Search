@@ -55,6 +55,7 @@ export type Provider = {
   lon: number
   category: string
   matched_services: string[]
+  matched_needs?: string[]
   distance_km: number
   google_maps_url: string
   /** OpenStreetMap deep link (OSM fallback only) */

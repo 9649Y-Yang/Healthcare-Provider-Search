@@ -28,9 +28,9 @@ const NEED_ALIASES: Record<string, string[]> = {
     "disability_related_health_supports",
     "social_recreation_supports",
     "behaviour_support",
-    "employment_supports",
     "supported_independent_living",
   ],
+  employment_supports: ["employment_supports", "vocational_support", "job_coaching", "employment_assistance"],
   aged_care: ["aged_care", "home_support", "residential_care", "nursing_support", "respite", "carer_support", "assessment"],
   mental_health: [
     "mental_health",
