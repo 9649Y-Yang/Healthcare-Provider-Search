@@ -24,6 +24,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate API base URL
+        run: |
+          if [ -z "${VITE_API_BASE_URL}" ]; then
+            echo "Repository variable VITE_API_BASE_URL is not set."
+            echo "Set it in Settings -> Secrets and variables -> Actions -> Variables."
+            echo "Example: https://your-backend-domain.com"
+            exit 1
+          fi
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:

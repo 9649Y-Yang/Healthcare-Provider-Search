@@ -102,6 +102,17 @@ GitHub Pages hosts static files only. Your backend API must be hosted separately
        - Example: `https://your-backend-domain.com`
 3. Ensure backend CORS allows your GitHub Pages origin.
 
+### Backend deployment (Render)
+
+This repository includes `.github/workflows/deploy-backend-render.yml` to trigger backend deploys on Render.
+
+1. Create a Render Web Service for the `backend` folder.
+2. In GitHub repository settings:
+   - **Secrets** → add `RENDER_DEPLOY_HOOK_URL` (from Render service deploy hook)
+3. Push backend changes to `main` to auto-trigger backend deployment workflow.
+
+After backend is live, set/update `VITE_API_BASE_URL` to that backend URL and re-run Pages deploy.
+
 ### Deploy
 
 - Push to `main`, or run workflow manually from the Actions tab.
