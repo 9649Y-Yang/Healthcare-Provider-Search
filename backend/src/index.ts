@@ -53,7 +53,10 @@ app.use(
         return callback(null, true)
       }
 
-      return callback(new Error("CORS origin not allowed"))
+      // Return null/false rather than an Error so cors sends a clean 403-style
+      // response instead of triggering Express's error handler (which has no
+      // CORS headers and causes browser CORS blocking on top of the 500).
+      return callback(null, false)
     },
   }),
 )
@@ -72,25 +75,33 @@ ensureSeeded().catch((err) => {
 const staticDir = join(process.cwd(), "frontend", "dist")
 app.use(express.static(staticDir))
 
-app.get("/api/needs", async (_req, res) => {
-  const services = await withDb((db) => {
-    initSchema(db)
-    return loadServices(db)
-  })
-
-  const needs = new Set<string>()
-  services.forEach((svc) => {
-    svc.needs.forEach((n: string) => needs.add(n))
-  })
-  res.json({ needs: Array.from(needs).sort() })
+app.get("/api/needs", async (_req, res, next) => {
+  try {
+    const services = await withDb((db) => {
+      initSchema(db)
+      return loadServices(db)
+    })
+    const needs = new Set<string>()
+    services.forEach((svc) => {
+      svc.needs.forEach((n: string) => needs.add(n))
+    })
+    res.json({ needs: Array.from(needs).sort() })
+  } catch (err) {
+    next(err)
+  }
 })
 
-app.get("/api/services", async (_req, res) => {
-  const services = await loadCatalogServices()
-  res.json({ services })
+app.get("/api/services", async (_req, res, next) => {
+  try {
+    const services = await loadCatalogServices()
+    res.json({ services })
+  } catch (err) {
+    next(err)
+  }
 })
 
-app.post("/api/eligibility", async (req, res) => {
+app.post("/api/eligibility", async (req, res, next) => {
+  try {
   const profile = req.body as Profile
 
   const requiredBooleans = [
@@ -126,6 +137,7 @@ app.post("/api/eligibility", async (req, res) => {
 
   const matches = findMatches(services, profile)
   res.json({ matches })
+  } catch (err) { next(err) }
 })
 
 app.post("/api/providers/search", async (req, res) => {
@@ -254,7 +266,8 @@ async function runAutoRefreshNow() {
   }
 }
 
-app.post("/api/update", async (req, res) => {
+app.post("/api/update", async (req, res, next) => {
+  try {
   const { services, apply } = req.body as {
     services?: any[]
     apply?: boolean
@@ -280,9 +293,11 @@ app.post("/api/update", async (req, res) => {
   }
 
   res.json({ status: apply ? "applied" : "preview", diff })
+  } catch (err) { next(err) }
 })
 
-app.post("/api/update/auto", async (req, res) => {
+app.post("/api/update/auto", async (req, res, next) => {
+  try {
   const { sources, apply, allowWarnings, agentLevel } = req.body as {
     sources?: string[]
     apply?: boolean
@@ -350,6 +365,7 @@ app.post("/api/update/auto", async (req, res) => {
     validationWarnings: fetchResult.validationWarnings,
     diff,
   })
+  } catch (err) { next(err) }
 })
 
 app.get("/api/refresh/status", (_req, res) => {
@@ -361,14 +377,43 @@ app.get("/api/refresh/status", (_req, res) => {
   })
 })
 
-app.post("/api/refresh/now", async (_req, res) => {
-  await runAutoRefreshNow()
-  res.json({
-    lastAutoRefreshAt,
-    lastAutoRefreshStatus,
-    lastAutoRefreshMessage,
-  })
+app.post("/api/refresh/now", async (_req, res, next) => {
+  try {
+    await runAutoRefreshNow()
+    res.json({
+      lastAutoRefreshAt,
+      lastAutoRefreshStatus,
+      lastAutoRefreshMessage,
+    })
+  } catch (err) { next(err) }
 })
+
+// Global error handler — MUST have 4 params and be registered after all routes.
+// Re-injects CORS headers so browsers can read error bodies across origins.
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _next: express.NextFunction,
+  ) => {
+    const requestOrigin = req.headers.origin as string | undefined
+    if (
+      !requestOrigin ||
+      CORS_ALLOWLIST.length === 0 ||
+      CORS_ALLOWLIST.includes(requestOrigin)
+    ) {
+      res.header("Access-Control-Allow-Origin", requestOrigin ?? "*")
+      res.header("Vary", "Origin")
+    }
+    // eslint-disable-next-line no-console
+    console.error("[error]", err.message ?? err)
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" })
+    }
+  },
+)
 
 // Fall back to index.html for SPA routing.
 app.get("/*", (_req, res) => {
@@ -378,6 +423,10 @@ app.get("/*", (_req, res) => {
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server running on http://localhost:${PORT}`)
+  // eslint-disable-next-line no-console
+  console.log(
+    `CORS: ${CORS_ALLOWLIST.length === 0 ? "open (all origins)" : `allowlist: ${CORS_ALLOWLIST.join(", ")}`}`,
+  )
 
   runAutoRefreshNow().catch((error) => {
     // eslint-disable-next-line no-console
