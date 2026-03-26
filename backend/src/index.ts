@@ -107,15 +107,19 @@ app.post("/api/eligibility", async (req, res) => {
 })
 
 app.post("/api/providers/search", async (req, res) => {
-  const { postcode, serviceIds, radiusKm } = req.body as {
+  const { postcode, address, serviceIds, radiusKm } = req.body as {
     postcode?: string
+    address?: string
     serviceIds?: number[]
     radiusKm?: number
   }
 
-  if (!postcode || !/^\d{4}$/.test(postcode)) {
+  const hasPostcode = postcode && /^\d{4}$/.test(postcode)
+  const hasAddress = address && address.trim().length > 0
+
+  if (!hasPostcode && !hasAddress) {
     return res.status(400).json({
-      error: "A 4-digit Victorian postcode is required.",
+      error: "Enter either a 4-digit Victorian postcode or a detailed address.",
     })
   }
 
@@ -139,7 +143,8 @@ app.post("/api/providers/search", async (req, res) => {
       typeof radiusKm === "number" && Number.isFinite(radiusKm)
         ? Math.min(Math.max(radiusKm, 2), 100)
         : 15
-    const result = await findNearbyProviders(postcode, selectedServices, normalizedRadiusKm)
+    const searchLocation = hasPostcode ? postcode! : address!
+    const result = await findNearbyProviders(searchLocation, selectedServices, normalizedRadiusKm)
     return res.json(result)
   } catch (error) {
     return res.status(502).json({

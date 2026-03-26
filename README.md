@@ -1,6 +1,6 @@
 # Healthcare Provider Search (Victoria)
 
-A web application that helps people in Victoria, Australia discover relevant healthcare, aged care, and disability support pathways, then find nearby providers by postcode.
+A web application that helps people in Victoria, Australia discover relevant healthcare, aged care, and disability support pathways, then find nearby providers by postcode or detailed address.
 
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/9649Y-Yang/Healthcare-Provider-Search/actions)
 [![Status](https://img.shields.io/badge/status-active-success)](https://github.com/9649Y-Yang/Healthcare-Provider-Search)
@@ -10,8 +10,11 @@ A web application that helps people in Victoria, Australia discover relevant hea
 
 - **Step-based eligibility flow**: answer core questions to determine suitable service pathways
 - **Service matching**: map user profile inputs to healthcare support categories
-- **Provider search by postcode**: find nearby providers within a configurable radius
-- **Verified provider integration**: includes curated provider data for key categories (including disability/NDIS)
+- **Provider search by postcode or address**: find nearby providers within a configurable radius
+- **Interactive map-area filtering**: pan/zoom and click **Search in this area** to refresh list results for the current viewport
+- **Verified provider integration**: curated provider data for healthcare, disability/NDIS, and aged-care services
+- **Improved aged-care matching**: aged-care service selections are mapped to aged-care providers and sub-needs (assessment, home support, residential care, respite, carer support)
+- **Click-to-open tooltips**: Step 1 explanations open on icon click and close when clicking outside
 - **Data update workflows**: preview and apply manual or automated service catalog updates
 
 ## 🎬 Demo GIF
@@ -47,7 +50,7 @@ Recommended: replace this URL with a GIF hosted on GitHub assets, Giphy, or Clou
 ### Frontend
 - **React** + **TypeScript**
 - **Vite**
-- **Leaflet + React-Leaflet** for map display
+- **Leaflet** for map display and viewport-aware filtering
 
 ### Data / Automation
 - Local JSON datasets and SQLite file storage
@@ -89,7 +92,8 @@ Frontend runs on: `http://localhost:5173` and proxies `/api` to backend.
 2. **Step 2 – Service pathway selection**
    - Review matched service categories and select relevant options.
 3. **Step 3 – Provider search**
-   - Enter a Victorian postcode and radius to view nearby providers on map/list.
+   - Enter a Victorian postcode or detailed address, choose radius, then view providers on map/list.
+   - Pan/zoom map and use **Search in this area** to filter to current viewport.
 
 ## 🔌 API Endpoints
 
@@ -97,7 +101,7 @@ Frontend runs on: `http://localhost:5173` and proxies `/api` to backend.
 - `GET /api/services` — load available service catalog
 - `GET /api/needs` — list needs across active services
 - `POST /api/eligibility` — return matched services for a profile
-- `POST /api/providers/search` — search nearby providers by postcode + selected services
+- `POST /api/providers/search` — search nearby providers by postcode **or** address + selected services
 
 ### Data update
 - `POST /api/update` — manual update preview/apply
@@ -108,6 +112,28 @@ Frontend runs on: `http://localhost:5173` and proxies `/api` to backend.
 - `POST /api/update/refresh-now` — trigger immediate refresh from configured sources
 
 ## 🔄 Data Update Workflow
+
+### Provider search request example
+
+`POST /api/providers/search`
+
+```json
+{
+   "postcode": "3000",
+   "serviceIds": [20],
+   "radiusKm": 25
+}
+```
+
+or
+
+```json
+{
+   "address": "300 Grattan Street, Parkville VIC",
+   "serviceIds": [20],
+   "radiusKm": 10
+}
+```
 
 ### Manual update
 
@@ -165,6 +191,7 @@ Healthcare Provider Search/
 └── scripts/
     ├── download-ndis-providers-playwright.js
     ├── import-ndis-providers.js
+   ├── enrich-aged-care-providers.js
     └── validate-*.js
 ```
 
@@ -201,7 +228,9 @@ npm run download:ndis
 
 - Database persists locally at `backend/data/services.sqlite`.
 - Verified providers are loaded from `backend/data/verified_providers.json`.
-- Provider lookup uses postcode geocoding and multiple search sources/routing.
+- Provider lookup supports postcode and detailed address geocoding.
+- Provider search routing prioritises: **verified dataset → NHSD → Google Places → OpenStreetMap**.
+- Step 3 aged-care selections are mapped to aged-care-specific provider needs to reduce unrelated NDIS results.
 - This project is currently scoped to **Victoria (VIC), Australia**.
 
 ## 📄 License

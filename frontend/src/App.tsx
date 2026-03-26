@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ProviderMap from "./ProviderMap"
 import type { MatchResult, Profile, ProviderSearchResult, Service } from "./types"
 import "./App.css"
@@ -43,7 +43,39 @@ type MapBounds = {
   west: number
 }
 
+type HelpTooltipProps = {
+  id: string
+  text: string
+  ariaLabel: string
+  openTooltipId: string | null
+  onToggle: (id: string) => void
+}
+
+function HelpTooltip({ id, text, ariaLabel, openTooltipId, onToggle }: HelpTooltipProps) {
+  const isOpen = openTooltipId === id
+
+  return (
+    <span className="helpTipWrap">
+      <button
+        type="button"
+        className="helpTip"
+        aria-label={ariaLabel}
+        aria-expanded={isOpen}
+        onClick={() => onToggle(id)}
+      >
+        ⓘ
+      </button>
+      {isOpen && (
+        <span role="tooltip" className="helpTipContent">
+          {text}
+        </span>
+      )}
+    </span>
+  )
+}
+
 export default function App() {
+  const appRef = useRef<HTMLDivElement | null>(null)
   const [services, setServices] = useState<Service[]>([])
   const [profile, setProfile] = useState<Profile>({
     age: null,
@@ -68,6 +100,8 @@ export default function App() {
   const [step2NeedFilters, setStep2NeedFilters] = useState<string[]>([])
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([])
   const [postcode, setPostcode] = useState("")
+  const [address, setAddress] = useState("")
+  const [searchType, setSearchType] = useState<"postcode" | "address">("postcode")
   const [radiusKm, setRadiusKm] = useState(15)
   const [providerResult, setProviderResult] = useState<ProviderSearchResult | null>(null)
   const [submitted, setSubmitted] = useState(false)
@@ -76,6 +110,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [providerError, setProviderError] = useState<string | null>(null)
   const [providerLoading, setProviderLoading] = useState(false)
+  const [openTooltipId, setOpenTooltipId] = useState<string | null>(null)
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const [mapViewportVersion, setMapViewportVersion] = useState(0)
   const [appliedViewportVersion, setAppliedViewportVersion] = useState<number | null>(null)
@@ -179,6 +214,28 @@ export default function App() {
     setAppliedViewportVersion(mapViewportVersion)
   }
 
+  const toggleTooltip = (id: string) => {
+    setOpenTooltipId((current) => (current === id ? null : id))
+  }
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (!openTooltipId) return
+      const target = event.target as HTMLElement | null
+      if (!target) return
+
+      if (target.closest(".helpTipWrap")) return
+      if (appRef.current && !appRef.current.contains(target)) return
+
+      setOpenTooltipId(null)
+    }
+
+    document.addEventListener("mousedown", handleDocumentClick)
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentClick)
+    }
+  }, [openTooltipId])
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setSubmitted(true)
@@ -271,9 +328,16 @@ export default function App() {
     setAppliedViewportVersion(null)
     setRestrictToMapArea(false)
 
-    if (!/^\d{4}$/.test(postcode)) {
-      setProviderError("Enter a valid 4-digit Victorian postcode.")
-      return
+    if (searchType === "postcode") {
+      if (!/^\d{4}$/.test(postcode)) {
+        setProviderError("Enter a valid 4-digit Victorian postcode.")
+        return
+      }
+    } else {
+      if (!address.trim()) {
+        setProviderError("Enter a detailed address (e.g., street, suburb).")
+        return
+      }
     }
 
     try {
@@ -282,7 +346,8 @@ export default function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          postcode,
+          postcode: searchType === "postcode" ? postcode : undefined,
+          address: searchType === "address" ? address : undefined,
           serviceIds: selectedServiceIds,
           radiusKm,
         }),
@@ -302,13 +367,13 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className="app" ref={appRef}>
       <header className="header">
         <div>
           <h1>Healthcare Provider Search (Victoria)</h1>
           <p>
-            Start with basic details, then choose realistic healthcare service pathways,
-            then search for nearby providers by postcode.
+            Complete Step 1 eligibility, choose services in Step 2, then find nearby providers in Step 3 using
+            either a Victorian postcode or a detailed address.
           </p>
         </div>
       </header>
@@ -318,20 +383,20 @@ export default function App() {
           <div className="stepTag">Step 1</div>
           <h2>Tell us the basics first</h2>
           <p className="info">
-            We ask key eligibility questions used by official pathways (for example,
-            My Aged Care, NDIS and urgent care) before recommending service types.
+            These questions are used to filter service pathways before provider search.
+            This helps show services that better match your care context (for example My Aged Care, NDIS, or urgent care).
           </p>
           <form onSubmit={handleSubmit} className="form">
             <div className="field">
               <span className="fieldLabel">
                 Do you live in Australia?
-                <span
-                  className="helpTip"
-                  title="Some pathways (for example NDIS) require you to live in Australia."
-                  aria-label="Some pathways require you to live in Australia"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="lives-in-australia"
+                  text="Some pathways, including NDIS access, require you to live in Australia."
+                  ariaLabel="Why we ask if you live in Australia"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -359,13 +424,13 @@ export default function App() {
             <div className="field conditionalField">
               <span className="fieldLabel">
                 Are you an Australian citizen, permanent resident, or Protected SCV holder?
-                <span
-                  className="helpTip"
-                  title="Protected SCV means a Protected Special Category Visa holder, mainly for eligible New Zealand citizens."
-                  aria-label="Explanation of Protected SCV"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="australian-resident"
+                  text="Protected SCV means Protected Special Category Visa, mainly for eligible New Zealand citizens."
+                  ariaLabel="What Protected SCV means"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -393,13 +458,13 @@ export default function App() {
             <div className="field">
               <label htmlFor="age">
                 Age
-                <span
-                  className="helpTip"
-                  title="Age can change eligibility for youth, disability, and aged care pathways."
-                  aria-label="Explanation of age importance"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="age"
+                  text="Age can affect eligibility for youth, disability, and aged-care pathways."
+                  ariaLabel="Why age matters"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </label>
               <input
                 id="age"
@@ -418,13 +483,13 @@ export default function App() {
             <div className="field">
               <label htmlFor="gender">
                 Gender
-                <span
-                  className="helpTip"
-                  title="Some services are gender-targeted, including specific women’s or men’s health services."
-                  aria-label="Explanation of gender relevance"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="gender"
+                  text="Some services are designed for specific groups, including women’s and men’s health services."
+                  ariaLabel="Why gender is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </label>
               <select
                 id="gender"
@@ -444,13 +509,13 @@ export default function App() {
             <div className="field">
               <label htmlFor="regionType">
                 Where do you usually live?
-                <span
-                  className="helpTip"
-                  title="Some services are focused on regional or rural communities."
-                  aria-label="Explanation of location type"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="region-type"
+                  text="Some programs are available only in metropolitan areas or in regional and rural areas."
+                  ariaLabel="Why location type is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </label>
               <select
                 id="regionType"
@@ -473,13 +538,13 @@ export default function App() {
             <div className="field">
               <span className="fieldLabel">
                 Aboriginal or Torres Strait Islander
-                <span
-                  className="helpTip"
-                  title="This can affect culturally safe pathway matching and some age thresholds."
-                  aria-label="Explanation of Aboriginal and Torres Strait Islander question"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="atsi"
+                  text="This helps match culturally safe services and applies the correct age rules for some pathways."
+                  ariaLabel="Why Aboriginal and Torres Strait Islander status is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -506,13 +571,13 @@ export default function App() {
             <div className="field">
               <span className="fieldLabel">
                 Disability or NDIS-related support needs
-                <span
-                  className="helpTip"
-                  title="Used to match disability support and NDIS-related service pathways."
-                  aria-label="Explanation of disability support needs"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="disability-support"
+                  text="This is used to match disability and NDIS-related service pathways."
+                  ariaLabel="Why disability support needs are asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -540,13 +605,13 @@ export default function App() {
             <div className="field conditionalField">
               <span className="fieldLabel">
                 Do you have a permanent impairment?
-                <span
-                  className="helpTip"
-                  title="NDIS access generally requires disability caused by a permanent impairment."
-                  aria-label="Explanation of permanent impairment"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="permanent-impairment"
+                  text="NDIS access usually requires disability caused by a permanent impairment."
+                  ariaLabel="Why permanent impairment is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -575,13 +640,13 @@ export default function App() {
             <div className="field conditionalField">
               <span className="fieldLabel">
                 Does your condition substantially reduce your ability to complete everyday activities?
-                <span
-                  className="helpTip"
-                  title="NDIS access criteria include substantial functional impact in daily activities."
-                  aria-label="Explanation of functional capacity impact"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="functional-capacity"
+                  text="NDIS criteria include substantial impact on daily functional activities."
+                  ariaLabel="Why functional capacity is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -610,13 +675,13 @@ export default function App() {
             <div className="field conditionalField">
               <span className="fieldLabel">
                 Are you seeking access to the NDIS?
-                <span
-                  className="helpTip"
-                  title="This is for people applying for NDIS access eligibility, not only existing participants."
-                  aria-label="Explanation of NDIS access intent"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="seeking-ndis"
+                  text="This is for people applying for NDIS access, not only current participants."
+                  ariaLabel="Why NDIS access intent is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -644,13 +709,13 @@ export default function App() {
             <div className="field">
               <span className="fieldLabel">
                 Do you have a Medicare card?
-                <span
-                  className="helpTip"
-                  title="Some subsidised services and care plans depend on Medicare eligibility."
-                  aria-label="Explanation of Medicare card question"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="medicare-card"
+                  text="Some subsidised services and care plans depend on Medicare eligibility."
+                  ariaLabel="Why Medicare card is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -677,13 +742,13 @@ export default function App() {
             <div className="field">
               <span className="fieldLabel">
                 Do you usually need disability-related support to complete daily activities?
-                <span
-                  className="helpTip"
-                  title="This includes support needs in daily life activities (for example at home, in the community, or in routines)."
-                  aria-label="Explanation of daily activities support question"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="daily-support"
+                  text="This includes support needs in daily life, at home, in the community, or in routines."
+                  ariaLabel="Why daily support needs are asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -710,13 +775,13 @@ export default function App() {
             <div className="field">
               <span className="fieldLabel">
                 Do you need same-day urgent care for a problem that is not immediately life-threatening?
-                <span
-                  className="helpTip"
-                  title="Urgent care examples: fever, minor infection, sprain, small cut needing treatment. Not urgent care: chest pain, severe breathing trouble, major bleeding, collapse."
-                  aria-label="Explanation of urgent non-life-threatening"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="urgent-care"
+                  text="Urgent care examples: fever, minor infection, sprain, or small cut. Emergencies like chest pain, severe breathing trouble, heavy bleeding, or collapse need 000/ED care."
+                  ariaLabel="What urgent non life threatening means"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <p className="info">
                 This means you need care today, but it is not a 000-level emergency.
@@ -747,13 +812,13 @@ export default function App() {
             <div className="field conditionalField">
               <span className="fieldLabel">
                 Right now, do you have signs of a life-threatening emergency?
-                <span
-                  className="helpTip"
-                  title="Emergency signs include severe chest pain, severe trouble breathing, stroke symptoms, heavy bleeding, collapse, or unconsciousness."
-                  aria-label="Explanation of emergency question"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="emergency-now"
+                  text="Emergency signs include severe chest pain, severe breathing trouble, stroke symptoms, heavy bleeding, collapse, or unconsciousness."
+                  ariaLabel="Why emergency signs are asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <p className="info">
                 If yes, this is emergency care (call 000 or go to ED), not urgent care clinic.
@@ -784,13 +849,13 @@ export default function App() {
             <div className="field">
               <span className="fieldLabel">
                 Are you seeking support for a mental health concern?
-                <span
-                  className="helpTip"
-                  title="Used to prioritise mental health service pathways and care plan options."
-                  aria-label="Explanation of mental health concern question"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="mental-health-concern"
+                  text="This helps prioritise mental health pathways and care plan options."
+                  ariaLabel="Why mental health concern is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -818,13 +883,13 @@ export default function App() {
             <div className="field conditionalField">
               <span className="fieldLabel">
                 Have you been diagnosed with a mental health condition?
-                <span
-                  className="helpTip"
-                  title="Some pathways (for example GP mental health treatment plan referrals) are specific to diagnosed conditions."
-                  aria-label="Explanation of diagnosed mental health condition"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="diagnosed-mental-health"
+                  text="Some pathways, including GP mental health treatment plan referrals, depend on diagnosis status."
+                  ariaLabel="Why diagnosis status is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -852,13 +917,13 @@ export default function App() {
             <div className="field">
               <span className="fieldLabel">
                 Are you seeking support for alcohol or drug use concerns?
-                <span
-                  className="helpTip"
-                  title="This controls whether alcohol and other drug services appear in Step 2."
-                  aria-label="Explanation of alcohol or drug support question"
-                >
-                  ⓘ
-                </span>
+                <HelpTooltip
+                  id="alcohol-drug"
+                  text="This controls whether alcohol and other drug services are shown in Step 2."
+                  ariaLabel="Why alcohol or drug support is asked"
+                  openTooltipId={openTooltipId}
+                  onToggle={toggleTooltip}
+                />
               </span>
               <div className="choiceRow">
                 <label className="choicePill">
@@ -896,8 +961,7 @@ export default function App() {
           <h2>Select the specific services you want</h2>
           {!submitted ? (
             <p>
-              Submit your details first. Only after that do we show the healthcare
-              service types that fit the profile you entered.
+              Submit Step 1 first. Step 2 then shows service options matched to your profile.
             </p>
           ) : matches.length === 0 ? (
             <p>No realistic healthcare pathways matched that profile. Adjust the details and try again.</p>
@@ -971,28 +1035,72 @@ export default function App() {
 
         <section className="panel providerPanel">
           <div className="stepTag">Step 3</div>
-          <h2>Find nearby providers by postcode</h2>
+          <h2>Find nearby providers</h2>
           {selectedServiceIds.length === 0 ? (
-            <p>Select one or more services from Step 2 before searching by postcode.</p>
+            <p>Select one or more services from Step 2 before searching for providers.</p>
           ) : (
             <>
               <p className="info">
                 Selected services: {selectedServices.map((item) => item.service.name).join(", ")}
               </p>
 
-              <form onSubmit={handleProviderSearch} className="form inlineForm">
+              <form onSubmit={handleProviderSearch} className="form">
                 <div className="field">
-                  <label htmlFor="postcode">Victorian postcode</label>
-                  <input
-                    id="postcode"
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={4}
-                    value={postcode}
-                    onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                    placeholder="e.g. 3000"
-                  />
+                  <span className="fieldLabel">Search by:</span>
+                  <div className="choiceRow">
+                    <label className="choicePill">
+                      <input
+                        type="radio"
+                        name="searchType"
+                        checked={searchType === "postcode"}
+                        onChange={() => {
+                          setSearchType("postcode")
+                          setAddress("")
+                        }}
+                      />
+                      Postcode
+                    </label>
+                    <label className="choicePill">
+                      <input
+                        type="radio"
+                        name="searchType"
+                        checked={searchType === "address"}
+                        onChange={() => {
+                          setSearchType("address")
+                          setPostcode("")
+                        }}
+                      />
+                      Address
+                    </label>
+                  </div>
+                  <p className="info">Use postcode for broad local search, or a full address for more precise map centering.</p>
                 </div>
+
+                {searchType === "postcode" ? (
+                  <div className="field">
+                    <label htmlFor="postcode">Victorian postcode</label>
+                    <input
+                      id="postcode"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={postcode}
+                      onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      placeholder="e.g. 3000"
+                    />
+                  </div>
+                ) : (
+                  <div className="field">
+                    <label htmlFor="address">Detailed address</label>
+                    <input
+                      id="address"
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="e.g. 300 Grattan Street, Parkville VIC"
+                    />
+                  </div>
+                )}
                 <div className="field">
                   <label htmlFor="radiusKm">Search radius</label>
                   <select
@@ -1013,13 +1121,14 @@ export default function App() {
               </form>
 
               <p className="info">
-                The map supports zoom in and zoom out. Use search radius to show fewer or more nearby providers within the postcode area.
+                You can pan and zoom the map freely. Use "Search in this area" to refresh results for the current viewport,
+                or adjust radius to widen/narrow the initial search.
               </p>
 
               {providerResult?.center.googleMapsUrl && (
                 <p className="info">
                   <a href={providerResult.center.googleMapsUrl} target="_blank" rel="noreferrer">
-                    Open this postcode area in Google Maps
+                    Open search area in Google Maps
                   </a>
                 </p>
               )}
@@ -1027,9 +1136,9 @@ export default function App() {
               {providerError && <p className="error">{providerError}</p>}
 
               {!providerSearchStarted ? (
-                <p>After you choose services, enter a postcode to see nearby providers on the map and in the list.</p>
+                <p>After selecting services, enter a postcode or address to load providers on the map and in the list.</p>
               ) : providerResult && providerResult.providers.length === 0 ? (
-                <p>No nearby providers were found for that postcode and service combination.</p>
+                <p>No nearby providers were found for this location and service combination. Try a different address or a larger radius.</p>
               ) : null}
 
               {providerResult && (
@@ -1069,7 +1178,7 @@ export default function App() {
                   <div className="providerSummary info">
                     Showing {displayedProviders.length} of {providerResult.providers.length} providers within {providerResult.center.radiusKm ?? radiusKm} km of {providerResult.center.displayName}.
                     {restrictToMapArea && <span> Filtered to current map area.</span>}
-                    {hasPendingMapArea && <span> Move/zoom applied — click “Search in this area” to refresh the list.</span>}
+                    {hasPendingMapArea && <span> Map moved or zoomed — click “Search in this area” to refresh the list.</span>}
                     {providerResult.source_sequence && providerResult.source_sequence.length > 0 && (
                       <span> Search order: {providerResult.source_sequence.join(" → ")}.</span>
                     )}
@@ -1143,7 +1252,7 @@ export default function App() {
                         )}
                         {provider.data_source === "verified" && (
                           <p className="meta providerSource">
-                            Data: Verified provider dataset (official website reviewed)
+                            Data: Verified provider dataset (manually curated)
                           </p>
                         )}
                         {provider.data_source === "google" && (
@@ -1170,7 +1279,8 @@ export default function App() {
 
       <footer className="footer">
         <p>
-          Recommendations are curated from official Australian and Victorian health sources. Nearby provider search uses verified provider data first, then NHSD, then Google Places, then OpenStreetMap, plus official NDIS and My Aged Care pathways where relevant.
+          Service pathways are curated from Australian and Victorian health sources. Provider search prioritises the verified provider
+          dataset, then falls back to NHSD, Google Places, and OpenStreetMap when needed.
         </p>
         <p>Current service pathways loaded: {services.length}</p>
       </footer>

@@ -17,7 +17,7 @@ type PostcodeLocation = {
 
 const USER_AGENT =
   "HealthcareProviderSearchBot/1.0 (local dev; contact: local@localhost)"
-const postcodeCache = new Map<string, PostcodeLocation>()
+const locationCache = new Map<string, PostcodeLocation>()
 const searchCache = new Map<string, Array<Record<string, unknown>>>()
 const PROVIDER_NAME_KEYWORDS = [
   "medical",
@@ -142,13 +142,19 @@ function haversineDistanceKm(
   return earthRadiusKm * c
 }
 
-async function geocodePostcode(postcode: string): Promise<PostcodeLocation> {
-  const cached = postcodeCache.get(postcode)
+async function geocodeLocation(query: string): Promise<PostcodeLocation> {
+  const cacheKey = query.toLowerCase()
+  const cached = locationCache.get(cacheKey)
   if (cached) return cached
+
+  const isPostcode = /^\d{4}$/.test(query)
+  const nominatimQuery = isPostcode
+    ? `${query} Victoria Australia`
+    : `${query}, Victoria, Australia`
 
   const url =
     "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=au&email=local@localhost&q=" +
-    encodeURIComponent(`${postcode} Victoria Australia`)
+    encodeURIComponent(nominatimQuery)
 
   let result: PostcodeLocation | null = null
 
@@ -164,65 +170,73 @@ async function geocodePostcode(postcode: string): Promise<PostcodeLocation> {
 
       if (response.ok) break
       if (response.status !== 429 || attempt === 3) {
-        throw new Error(`Postcode lookup failed with HTTP ${response.status}`)
+        throw new Error(`Location lookup failed with HTTP ${response.status}`)
       }
       await sleep(1200 * attempt)
     }
 
     if (!response || !response.ok) {
-      throw new Error("Postcode lookup failed")
+      throw new Error("Location lookup failed")
     }
 
     const payload = (await response.json()) as Array<Record<string, unknown>>
     const first = payload[0]
     if (!first) {
-      throw new Error("No location found for that Victorian postcode")
+      if (isPostcode) {
+        throw new Error("No location found for that Victorian postcode")
+      } else {
+        throw new Error("No location found for that address")
+      }
     }
 
     result = {
       lat: Number(first.lat),
       lon: Number(first.lon),
-      displayName: String(first.display_name ?? postcode),
+      displayName: String(first.display_name ?? query),
       googleMapsUrl:
         "https://www.google.com/maps/search/?api=1&query=" +
-        encodeURIComponent(`${postcode} Victoria Australia`),
+        encodeURIComponent(nominatimQuery),
     }
   } catch {
-    const fallbackResponse = await fetch(`https://api.zippopotam.us/AU/${postcode}`, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": USER_AGENT,
-      },
-    })
+    if (isPostcode) {
+      const fallbackResponse = await fetch(`https://api.zippopotam.us/AU/${query}`, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": USER_AGENT,
+        },
+      })
 
-    if (!fallbackResponse.ok) {
-      throw new Error(`Postcode lookup failed with HTTP ${fallbackResponse.status}`)
-    }
+      if (!fallbackResponse.ok) {
+        throw new Error(`Postcode lookup failed with HTTP ${fallbackResponse.status}`)
+      }
 
-    const fallbackPayload = (await fallbackResponse.json()) as {
-      country?: string
-      places?: Array<Record<string, string>>
-    }
-    const place = fallbackPayload.places?.[0]
-    if (!place) {
-      throw new Error("No location found for that Victorian postcode")
-    }
+      const fallbackPayload = (await fallbackResponse.json()) as {
+        country?: string
+        places?: Array<Record<string, string>>
+      }
+      const place = fallbackPayload.places?.[0]
+      if (!place) {
+        throw new Error("No location found for that Victorian postcode")
+      }
 
-    result = {
-      lat: Number(place.latitude),
-      lon: Number(place.longitude),
-      displayName: `${postcode}, ${place["place name"] ?? "Victoria"}, ${place.state ?? "Victoria"}, ${fallbackPayload.country ?? "Australia"}`,
-      googleMapsUrl:
-        "https://www.google.com/maps/search/?api=1&query=" +
-        encodeURIComponent(`${postcode} Victoria Australia`),
+      result = {
+        lat: Number(place.latitude),
+        lon: Number(place.longitude),
+        displayName: `${query}, ${place["place name"] ?? "Victoria"}, ${place.state ?? "Victoria"}, ${fallbackPayload.country ?? "Australia"}`,
+        googleMapsUrl:
+          "https://www.google.com/maps/search/?api=1&query=" +
+          encodeURIComponent(`${query} Victoria Australia`),
+      }
+    } else {
+      throw new Error("Failed to geocode address. Please try a different address format.")
     }
   }
 
   if (!result) {
-    throw new Error("No location found for that Victorian postcode")
+    throw new Error("No location found for that search query")
   }
 
-  postcodeCache.set(postcode, result)
+  locationCache.set(cacheKey, result)
   return result
 }
 
@@ -416,14 +430,14 @@ async function searchOsmProviders(
 }
 
 export async function findNearbyProviders(
-  postcode: string,
+  searchQuery: string,
   selectedServices: Service[],
   radiusKm = 15,
 ): Promise<ProviderSearchResult> {
-  const center = await geocodePostcode(postcode)
+  const center = await geocodeLocation(searchQuery)
   center.radiusKm = radiusKm
 
-  const official_pathways = buildOfficialPathways(postcode, selectedServices)
+  const official_pathways = buildOfficialPathways(searchQuery, selectedServices)
   const source_sequence = buildSourceSequence(selectedServices)
 
   for (const source of source_sequence) {
@@ -442,7 +456,7 @@ export async function findNearbyProviders(
 
       if (source === "nhsd" && process.env.NHSD_API_KEY) {
         const providers = await searchNHSD(
-          postcode,
+          searchQuery,
           selectedServices,
           radiusKm,
           center.lat,
@@ -454,7 +468,7 @@ export async function findNearbyProviders(
       }
 
       if (source === "google" && process.env.GOOGLE_PLACES_API_KEY) {
-        const providers = await searchGooglePlaces(postcode, selectedServices, radiusKm, {
+        const providers = await searchGooglePlaces(searchQuery, selectedServices, radiusKm, {
           lat: center.lat,
           lon: center.lon,
         })
@@ -464,7 +478,7 @@ export async function findNearbyProviders(
       }
 
       if (source === "osm") {
-        const providers = await searchOsmProviders(postcode, selectedServices, radiusKm, center)
+        const providers = await searchOsmProviders(searchQuery, selectedServices, radiusKm, center)
         return { center, providers, official_pathways, source_sequence }
       }
     } catch {

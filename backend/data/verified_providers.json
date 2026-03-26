@@ -55,7 +55,9 @@
       "speech_pathology",
       "physiotherapy",
       "therapy_supports",
-      "aboriginal_health"
+      "aboriginal_health",
+      "assessment",
+      "residential_care"
     ]
   },
   {
@@ -415,7 +417,8 @@
       "womens_health",
       "aboriginal_health",
       "disability_support",
-      "ndis"
+      "ndis",
+      "residential_care"
     ]
   },
   {
@@ -473,7 +476,8 @@
       "womens_health",
       "aged_care",
       "general_practice",
-      "aboriginal_health"
+      "aboriginal_health",
+      "residential_care"
     ]
   },
   {
@@ -778,7 +782,8 @@
       "speech_pathology",
       "physiotherapy",
       "podiatry",
-      "aboriginal_health"
+      "aboriginal_health",
+      "home_support"
     ]
   },
   {
@@ -902,7 +907,8 @@
       "allied_health",
       "occupational_therapy",
       "physiotherapy",
-      "podiatry"
+      "podiatry",
+      "home_support"
     ]
   },
   {
@@ -181040,5 +181046,505 @@
     "lon": 144.8036181,
     "ndis_registered": true,
     "source": "ndis_commission"
+  },
+  {
+    "id": "VIC_7015",
+    "name": "Benetas",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Hawthorn East",
+    "postcode": "3123",
+    "lat": -37.8313785,
+    "lon": 145.0499797,
+    "website": "https://www.benetas.com.au",
+    "services": [
+      {
+        "name": "My Aged Care assessment support",
+        "category": "aged_care"
+      },
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.benetas.com.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7016",
+    "name": "mecwacare",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Malvern",
+    "postcode": "3144",
+    "lat": -37.8576088,
+    "lon": 145.0350666,
+    "website": "https://www.mecwacare.org.au",
+    "services": [
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "In-home personal care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.mecwacare.org.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7017",
+    "name": "VMCH (Villa Maria Catholic Homes)",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Wantirna",
+    "postcode": "3152",
+    "lat": -37.8523357,
+    "lon": 145.2259721,
+    "website": "https://www.vmch.com.au",
+    "services": [
+      {
+        "name": "My Aged Care assessment support",
+        "category": "aged_care"
+      },
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential nursing care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.vmch.com.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7018",
+    "name": "Uniting AgeWell",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Burwood East",
+    "postcode": "3151",
+    "lat": -37.8535935,
+    "lon": 145.150423,
+    "website": "https://www.unitingagewell.org",
+    "services": [
+      {
+        "name": "My Aged Care assessment support",
+        "category": "aged_care"
+      },
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.unitingagewell.org",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7019",
+    "name": "Baptcare",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Camberwell",
+    "postcode": "3124",
+    "lat": -37.8384623,
+    "lon": 145.0740767,
+    "website": "https://www.baptcare.org.au",
+    "services": [
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "In-home personal care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.baptcare.org.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7020",
+    "name": "Regis Aged Care",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Camberwell",
+    "postcode": "3124",
+    "lat": -37.8384623,
+    "lon": 145.0740767,
+    "website": "https://www.regis.com.au",
+    "services": [
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential nursing care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "My Aged Care assessment support",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.regis.com.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7021",
+    "name": "Estia Health",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Camberwell",
+    "postcode": "3124",
+    "lat": -37.8384623,
+    "lon": 145.0740767,
+    "website": "https://www.estiahealth.com.au",
+    "services": [
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential nursing care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "My Aged Care assessment support",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.estiahealth.com.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7022",
+    "name": "Bolton Clarke",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Melbourne",
+    "postcode": "3000",
+    "lat": -37.8142454,
+    "lon": 144.9631732,
+    "website": "https://www.boltonclarke.com.au",
+    "services": [
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "In-home personal care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "My Aged Care assessment support",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.boltonclarke.com.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7023",
+    "name": "Calvary Aged Care Services (Victoria)",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Springvale",
+    "postcode": "3171",
+    "lat": -37.9495893,
+    "lon": 145.1537826,
+    "website": "https://www.calvarycare.org.au",
+    "services": [
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential nursing care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.calvarycare.org.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
+  },
+  {
+    "id": "VIC_7024",
+    "name": "Bupa Aged Care (Victoria)",
+    "type": "community_health",
+    "address": "",
+    "suburb": "Caulfield South",
+    "postcode": "3162",
+    "lat": -37.894699,
+    "lon": 145.0249323,
+    "website": "https://www.bupaagedcare.com.au",
+    "services": [
+      {
+        "name": "Residential aged care homes",
+        "category": "aged_care"
+      },
+      {
+        "name": "Residential nursing care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Respite aged care",
+        "category": "aged_care"
+      },
+      {
+        "name": "Home care package providers",
+        "category": "aged_care"
+      },
+      {
+        "name": "Carer support programs",
+        "category": "aged_care"
+      }
+    ],
+    "needs": [
+      "aged_care",
+      "assessment",
+      "home_support",
+      "personal_care",
+      "residential_care",
+      "nursing_support",
+      "respite",
+      "carer_support"
+    ],
+    "source_pages": [
+      "https://www.bupaagedcare.com.au",
+      "https://www.myagedcare.gov.au/find-a-provider"
+    ],
+    "data_source": "verified_manual",
+    "collection_date": "2026-03-26",
+    "collection_notes": "Added to improve Step 3 Aged Care provider coverage (assessment, home support, residential care, respite, personal care, carer support)."
   }
 ]

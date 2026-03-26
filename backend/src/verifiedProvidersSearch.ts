@@ -60,6 +60,16 @@ const GENERIC_SERVICE_NEEDS = new Set([
   "daily_living_support",
 ])
 
+const AGED_CARE_SUB_NEEDS = new Set([
+  "assessment",
+  "home_support",
+  "personal_care",
+  "residential_care",
+  "nursing_support",
+  "respite",
+  "carer_support",
+])
+
 function normalizedSpecificNeedsForService(service: Service) {
   const normalized = (service.needs ?? []).map((need) => normalizeNeed(String(need))).filter(Boolean)
   return normalized.filter((need) => !GENERIC_SERVICE_NEEDS.has(need))
@@ -150,6 +160,17 @@ function deriveNeedsFromServices(services: VerifiedProviderService[] = []): stri
     if (lcName.includes("therapy")) needs.add("therapy_supports")
     if (lcName.includes("nursing")) needs.add("nursing_support")
     if (lcName.includes("assistive")) needs.add("assistive_technology")
+    if (lcName.includes("assessment")) needs.add("assessment")
+    if (lcName.includes("residential")) needs.add("residential_care")
+    if (lcName.includes("home care") || lcName.includes("home support") || lcName.includes("support at home")) {
+      needs.add("home_support")
+    }
+    if (lcName.includes("personal care")) needs.add("personal_care")
+    if (lcName.includes("respite")) {
+      needs.add("respite")
+      needs.add("carer_support")
+    }
+    if (lcName.includes("carer")) needs.add("carer_support")
     if (lcName.includes("daily activit") || lcName.includes("daily life")) {
       needs.add("daily_living_support")
     }
@@ -224,6 +245,10 @@ export async function searchVerifiedProviders(
     return []
   }
 
+  const isAgedCareSearch = selectedServices.some(
+    (service) => service.category?.trim() === "Aged Care & Support",
+  )
+
   const providers = records
     .map((record) => {
       const normalizedRequestedNeeds = new Set(
@@ -231,9 +256,29 @@ export async function searchVerifiedProviders(
       )
 
       const currentProviderNeeds = providerNeeds(record)
-      const matchedNeeds = Array.from(normalizedRequestedNeeds).filter((need) =>
+      let matchedNeeds = Array.from(normalizedRequestedNeeds).filter((need) =>
         currentProviderNeeds.has(need),
       )
+
+      if (isAgedCareSearch) {
+        const providerHasAgedCare =
+          currentProviderNeeds.has("aged_care") ||
+          (record.services ?? []).some((service) => service.category === "aged_care")
+
+        if (!providerHasAgedCare) {
+          return null
+        }
+
+        if (matchedNeeds.length === 0) {
+          const requestedAgedSubNeeds = Array.from(normalizedRequestedNeeds).filter((need) =>
+            AGED_CARE_SUB_NEEDS.has(need),
+          )
+          if (requestedAgedSubNeeds.length > 0) {
+            matchedNeeds = ["aged_care"]
+          }
+        }
+      }
+
       if (matchedNeeds.length === 0) return null
 
       const matchedServiceNames = selectedServices
