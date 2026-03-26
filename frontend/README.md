@@ -85,6 +85,28 @@ npm run dev
 
 Frontend runs on: `http://localhost:5173` and proxies `/api` to backend.
 
+## 🌐 Deploy to GitHub Pages
+
+This repository includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml` to deploy the **frontend** to GitHub Pages.
+
+### Important
+
+GitHub Pages hosts static files only. Your backend API must be hosted separately (for example Render, Railway, Fly.io, etc.).
+
+### One-time setup
+
+1. Push this repository to GitHub.
+2. In GitHub repository settings:
+    - **Pages** → Source: **GitHub Actions**
+    - **Variables** → add repository variable `VITE_API_BASE_URL`
+       - Example: `https://your-backend-domain.com`
+3. Ensure backend CORS allows your GitHub Pages origin.
+
+### Deploy
+
+- Push to `main`, or run workflow manually from the Actions tab.
+- Frontend will be published to: `https://<your-username>.github.io/<repo-name>/`
+
 ## 📖 User Flow
 
 1. **Step 1 – Eligibility basics**

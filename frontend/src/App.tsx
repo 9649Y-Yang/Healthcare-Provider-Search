@@ -3,6 +3,9 @@ import ProviderMap from "./ProviderMap"
 import type { MatchResult, Profile, ProviderSearchResult, Service } from "./types"
 import "./App.css"
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? ""
+const apiUrl = (path: string) => `${API_BASE_URL}${path}`
+
 const SUPPORT_NEED_OPTIONS = [
   { value: "general_practice", label: "General practice" },
   { value: "urgent_care", label: "Urgent care" },
@@ -132,7 +135,7 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/services")
+      const res = await fetch(apiUrl("/api/services"))
       if (!res.ok) throw new Error(`Failed to load data: ${res.status}`)
       const data: { services: Service[] } = await res.json()
       setServices(data.services)
@@ -269,7 +272,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("/api/eligibility", {
+      const res = await fetch(apiUrl("/api/eligibility"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
@@ -342,7 +345,7 @@ export default function App() {
 
     try {
       setProviderLoading(true)
-      const res = await fetch("/api/providers/search", {
+      const res = await fetch(apiUrl("/api/providers/search"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
