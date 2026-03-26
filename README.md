@@ -118,6 +118,58 @@ After backend is live, set/update `VITE_API_BASE_URL` to that backend URL and re
 - Push to `main`, or run workflow manually from the Actions tab.
 - Frontend will be published to: `https://<your-username>.github.io/<repo-name>/`
 
+## 🚀 Recommended free deployment (Vercel + Render)
+
+For this app, the easiest free production setup is:
+
+- **Frontend:** Vercel (from `frontend/`)
+- **Backend API:** Render (from `backend/`)
+
+This avoids GitHub Pages static-only API limitations.
+
+### 1) Deploy backend to Render
+
+Option A (recommended): use `render.yaml` at repo root.
+
+1. In Render, click **New +** → **Blueprint**.
+2. Connect this GitHub repo.
+3. Render reads `render.yaml` and creates `healthcare-provider-search-backend`.
+4. (Recommended before first deploy) In Render service settings, set env vars:
+   - `AUTO_REFRESH_INTERVAL_MS=21600000`
+   - `CORS_ALLOWLIST=` (leave empty for first deploy)
+5. Deploy and copy backend URL (for example `https://your-backend.onrender.com`).
+
+Quick test:
+
+- `https://your-backend.onrender.com/health` should return `{ "status": "ok" }`.
+
+### 2) Deploy frontend to Vercel
+
+1. In Vercel, click **Add New...** → **Project**.
+2. Import this GitHub repo.
+3. Set **Root Directory** to `frontend`.
+4. Add environment variable:
+   - `VITE_API_BASE_URL` = your Render backend URL (no trailing slash)
+5. Deploy.
+
+The frontend uses `frontend/vercel.json` for Vite build output and SPA rewrites.
+
+### 3) Lock backend CORS to your Vercel domain
+
+After Vercel gives you your frontend URL, set this Render env var:
+
+- `CORS_ALLOWLIST=https://<project>.vercel.app`
+
+If you use multiple domains, separate with commas:
+
+- `CORS_ALLOWLIST=https://<project>.vercel.app,https://www.yourdomain.com`
+
+Then redeploy backend on Render.
+
+### 4) Share your link
+
+- Vercel frontend URL is the link to share with users.
+
 ## 📖 User Flow
 
 1. **Step 1 – Eligibility basics**

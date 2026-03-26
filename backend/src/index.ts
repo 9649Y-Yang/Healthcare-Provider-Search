@@ -15,6 +15,10 @@ const app = express()
 const AUTO_REFRESH_INTERVAL_MS = Number(
   process.env.AUTO_REFRESH_INTERVAL_MS ?? 1000 * 60 * 60 * 6,
 )
+const CORS_ALLOWLIST = (process.env.CORS_ALLOWLIST ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 // Work from the project root (where package.json lives)
 const SEED_PATH = join(process.cwd(), "data", "seed_services.json")
@@ -38,8 +42,26 @@ async function ensureSeeded() {
   })
 }
 
-app.use(cors())
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (CORS_ALLOWLIST.length === 0) {
+        return callback(null, true)
+      }
+
+      if (!origin || CORS_ALLOWLIST.includes(origin)) {
+        return callback(null, true)
+      }
+
+      return callback(new Error("CORS origin not allowed"))
+    },
+  }),
+)
 app.use(express.json())
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" })
+})
 
 ensureSeeded().catch((err) => {
   // eslint-disable-next-line no-console

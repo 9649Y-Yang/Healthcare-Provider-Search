@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: healthcare-provider-search-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 10000
+      - key: AUTO_REFRESH_INTERVAL_MS
+        value: 21600000
+      - key: CORS_ALLOWLIST
+        value: ""
