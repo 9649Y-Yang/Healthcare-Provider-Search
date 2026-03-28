@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { readFile } from "node:fs/promises"
 
@@ -73,7 +74,11 @@ ensureSeeded().catch((err) => {
 
 // Serve the production build (if it exists)
 const staticDir = join(process.cwd(), "frontend", "dist")
-app.use(express.static(staticDir))
+const hasStaticFrontend = existsSync(join(staticDir, "index.html"))
+
+if (hasStaticFrontend) {
+  app.use(express.static(staticDir))
+}
 
 app.get("/api/needs", async (_req, res, next) => {
   try {
@@ -415,10 +420,12 @@ app.use(
   },
 )
 
-// Fall back to index.html for SPA routing.
-app.get("/*", (_req, res) => {
-  res.sendFile(join(staticDir, "index.html"))
-})
+// Fall back to index.html for SPA routing when a local frontend build exists.
+if (hasStaticFrontend) {
+  app.get("/*", (_req, res) => {
+    res.sendFile(join(staticDir, "index.html"))
+  })
+}
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
