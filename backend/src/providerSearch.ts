@@ -152,6 +152,21 @@ async function geocodeLocation(query: string): Promise<PostcodeLocation> {
   const cached = locationCache.get(cacheKey)
   if (cached) return cached
 
+  // Raw coordinate string sent by "Search in this area" — no network call needed.
+  const coordMatch = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(query.trim())
+  if (coordMatch) {
+    const lat = Number(coordMatch[1])
+    const lon = Number(coordMatch[2])
+    const result: PostcodeLocation = {
+      lat,
+      lon,
+      displayName: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+      googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,
+    }
+    locationCache.set(cacheKey, result)
+    return result
+  }
+
   const isPostcode = /^\d{4}$/.test(query)
   const nominatimQuery = isPostcode
     ? `${query} Victoria Australia`

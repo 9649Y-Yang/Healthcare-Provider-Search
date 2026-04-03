@@ -20,6 +20,37 @@ const SUPPORT_NEED_OPTIONS = [
   { value: "aboriginal_health", label: "Aboriginal health services" },
 ]
 
+function formatEligibility(elig: Record<string, unknown>): string[] {
+  const items: string[] = []
+  if (elig.lives_in_australia) items.push("Must live in Australia")
+  if (elig.australian_resident) items.push("Must be an Australian citizen or permanent resident")
+  if (elig.age_min != null && elig.age_max != null)
+    items.push(`Aged ${elig.age_min as number} to ${elig.age_max as number} years`)
+  else if (elig.age_min != null) items.push(`Aged ${elig.age_min as number} years or older`)
+  else if (elig.age_max != null) items.push(`Aged ${elig.age_max as number} years or younger`)
+  if (elig.has_disability) items.push("Must have a diagnosed disability")
+  if (elig.permanent_impairment) items.push("Must have a permanent or significant impairment")
+  if (elig.reduced_functional_capacity)
+    items.push("Daily activities must be significantly affected by the disability")
+  if (elig.seeking_ndis_access) items.push("Must be seeking NDIS access or have an NDIS plan")
+  if (elig.needs_support_at_home) items.push("Must need support at home or in the community")
+  if (elig.urgent_non_life_threatening) items.push("For urgent but non-life-threatening conditions only")
+  if (elig.emergency_now === false)
+    items.push("Not for life-threatening emergencies — call 000 in an emergency")
+  if (elig.medicare_card) items.push("Medicare card required")
+  if (elig.mental_health_concern) items.push("Must have a mental health concern or experience")
+  if (elig.diagnosed_mental_health_condition) items.push("Must have a diagnosed mental health condition")
+  if (elig.alcohol_or_drug_concern)
+    items.push("Must have concerns related to alcohol or other drug use")
+  if (elig.atsi) items.push("Open to Aboriginal and Torres Strait Islander people")
+  if (elig.gender) {
+    const g = Array.isArray(elig.gender) ? (elig.gender as string[]) : [elig.gender as string]
+    const labels: Record<string, string> = { female: "women", male: "men", non_binary: "non-binary people" }
+    items.push(`Available for ${g.map((v) => labels[v] ?? v).join(" and ")}`)
+  }
+  return items
+}
+
 const SUPPORT_TYPE_CATEGORY_MAP: Record<string, string[]> = {
   general_practice: ["Primary Care & General Practice"],
   urgent_care: ["Urgent & Emergency Care"],
@@ -1083,12 +1114,21 @@ export default function App() {
                           </label>
                         </div>
                         <p>{match.service.description}</p>
-                        <p className="meta">Needs: {match.service.needs.join(", ")}</p>
-                        <ul className="reasonList">
-                          {match.why.map((reason, index) => (
-                            <li key={index}>{reason}</li>
-                          ))}
-                        </ul>
+                        {(() => {
+                          const eligItems = formatEligibility(
+                            match.service.eligibility as Record<string, unknown>,
+                          )
+                          return eligItems.length > 0 ? (
+                            <div className="eligibilitySection">
+                              <p className="eligibilityLabel">Who can access this service:</p>
+                              <ul className="eligibilityList">
+                                {eligItems.map((item, i) => (
+                                  <li key={i}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null
+                        })()}
                         {match.service.source_summary && <p className="info">{match.service.source_summary}</p>}
                         {match.service.source_url && (
                           <p className="source">

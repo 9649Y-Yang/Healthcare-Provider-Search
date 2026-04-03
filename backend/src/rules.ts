@@ -296,10 +296,6 @@ export function evaluate(service: Service, profile: Profile) {
     score += 2
   }
 
-  if (service.needs.length > 0) {
-    reasons.push(`Covers: ${service.needs.slice(0, 3).join(", ")}`)
-  }
-
   return {
     match: true,
     reasons,

@@ -312,6 +312,30 @@
   padding-left: 1.1rem;
 }
 
+.eligibilitySection {
+  margin: 0.75rem 0 0;
+}
+
+.eligibilityLabel {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #555555;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.eligibilityList {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+  color: #444444;
+}
+
+.eligibilityList li {
+  margin-bottom: 0.2rem;
+}
+
 .source {
   margin-top: 0.75rem;
   font-size: 0.88rem;
