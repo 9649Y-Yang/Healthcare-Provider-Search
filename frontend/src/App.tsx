@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ProviderMap from "./ProviderMap"
 import type { MatchResult, Profile, ProviderSearchResult, Service } from "./types"
 import "./App.css"
@@ -206,10 +206,81 @@ export default function App() {
     setMapViewportVersion((current) => current + 1)
   }, [])
 
-  const applyMapAreaFilter = () => {
+  const applyMapAreaFilter = async () => {
     if (!providerResult || !mapBounds) return
-    setRestrictToMapArea(true)
-    setAppliedViewportVersion(mapViewportVersion)
+
+    // Derive the centre of the current viewport.
+    const viewLat = (mapBounds.north + mapBounds.south) / 2
+    const viewLon = (mapBounds.east + mapBounds.west) / 2
+
+    // Half-diagonal of the viewport in km — use as the new search radius.
+    const toRad = (v: number) => (v * Math.PI) / 180
+    const R = 6371
+    const dLat = toRad(mapBounds.north - mapBounds.south)
+    const dLon = toRad(mapBounds.east - mapBounds.west)
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(mapBounds.south)) *
+        Math.cos(toRad(mapBounds.north)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2)
+    const viewportHalfDiagonalKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 0.6
+    const newRadius = Math.min(Math.max(Math.round(viewportHalfDiagonalKm), 2), 100)
+
+    // Check if the viewport centre has moved far enough to warrant a fresh
+    // backend search rather than just a client-side filter.
+    const origLat = providerResult.center.lat
+    const origLon = providerResult.center.lon
+    const origRadius = providerResult.center.radiusKm ?? radiusKm
+    const dLatOrig = toRad(viewLat - origLat)
+    const dLonOrig = toRad(viewLon - origLon)
+    const aOrig =
+      Math.sin(dLatOrig / 2) * Math.sin(dLatOrig / 2) +
+      Math.cos(toRad(origLat)) *
+        Math.cos(toRad(viewLat)) *
+        Math.sin(dLonOrig / 2) *
+        Math.sin(dLonOrig / 2)
+    const distanceFromOriginKm = R * 2 * Math.atan2(Math.sqrt(aOrig), Math.sqrt(1 - aOrig))
+
+    // If the viewport centre is still within the original search radius, just
+    // filter client-side. Otherwise re-query the backend from the new centre.
+    if (distanceFromOriginKm <= origRadius * 0.8) {
+      setRestrictToMapArea(true)
+      setAppliedViewportVersion(mapViewportVersion)
+      return
+    }
+
+    // Fresh backend search using viewport centre as a coordinate address string.
+    setProviderError(null)
+    setProviderResult(null)
+    setRestrictToMapArea(false)
+    setAppliedViewportVersion(null)
+    setMapBounds(null)
+
+    try {
+      setProviderLoading(true)
+      const areaAddress = `${viewLat.toFixed(6)},${viewLon.toFixed(6)}`
+      const res = await fetch(apiUrl("/api/providers/search"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          address: areaAddress,
+          serviceIds: selectedServiceIds,
+          radiusKm: newRadius,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data?.error || `Provider search failed: ${res.status}`)
+      }
+      setProviderResult(data)
+      setAppliedViewportVersion(0)
+      setProviderSearchVersion((current) => current + 1)
+    } catch (ex) {
+      setProviderError(String(ex))
+    } finally {
+      setProviderLoading(false)
+    }
   }
 
   const clearMapAreaFilter = () => {
@@ -1124,7 +1195,7 @@ export default function App() {
               </form>
 
               <p className="info">
-                You can pan and zoom the map freely. Use "Search in this area" to refresh results for the current viewport,
+                You can pan and zoom the map freely. Use "Search in this area" to search from the new viewport centre — it re-queries the backend when the map has moved far from the original search location.
                 or adjust radius to widen/narrow the initial search.
               </p>
 
@@ -1181,7 +1252,7 @@ export default function App() {
                   <div className="providerSummary info">
                     Showing {displayedProviders.length} of {providerResult.providers.length} providers within {providerResult.center.radiusKm ?? radiusKm} km of {providerResult.center.displayName}.
                     {restrictToMapArea && <span> Filtered to current map area.</span>}
-                    {hasPendingMapArea && <span> Map moved or zoomed — click “Search in this area” to refresh the list.</span>}
+                    {hasPendingMapArea && <span> Map moved — click “Search in this area” to re-search from the new location.</span>}
                     {providerResult.source_sequence && providerResult.source_sequence.length > 0 && (
                       <span> Search order: {providerResult.source_sequence.join(" → ")}.</span>
                     )}
