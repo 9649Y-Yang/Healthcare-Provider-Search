@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises"
 
 import { initSchema, loadServices, upsertServices, withDb } from "./db"
 import { loadCatalogServices } from "./catalog"
+import { getCuratedNdisStatus } from "./ndisProvidersSearch"
 import { findNearbyProviders } from "./providerSearch"
 import { findMatches } from "./rules"
 import type { Profile } from "./types"
@@ -20,6 +21,28 @@ const CORS_ALLOWLIST = (process.env.CORS_ALLOWLIST ?? "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean)
+
+function isOriginAllowed(origin: string | undefined): boolean {
+  if (!origin || CORS_ALLOWLIST.length === 0) return true
+
+  if (CORS_ALLOWLIST.includes(origin)) {
+    return true
+  }
+
+  // Supports wildcard entries like "https://*.vercel.app".
+  try {
+    const url = new URL(origin)
+    return CORS_ALLOWLIST.some((rule) => {
+      if (!rule.includes("*")) return false
+
+      const normalizedRule = rule.replace("https://", "")
+      const wildcardHost = normalizedRule.replace("*.", "")
+      return url.protocol === "https:" && url.hostname.endsWith(`.${wildcardHost}`)
+    })
+  } catch {
+    return false
+  }
+}
 
 // Work from the project root (where package.json lives)
 const SEED_PATH = join(process.cwd(), "data", "seed_services.json")
@@ -46,11 +69,7 @@ async function ensureSeeded() {
 app.use(
   cors({
     origin(origin, callback) {
-      if (CORS_ALLOWLIST.length === 0) {
-        return callback(null, true)
-      }
-
-      if (!origin || CORS_ALLOWLIST.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true)
       }
 
@@ -393,6 +412,10 @@ app.post("/api/refresh/now", async (_req, res, next) => {
   } catch (err) { next(err) }
 })
 
+app.get("/api/ndis/status", (_req, res) => {
+  res.json(getCuratedNdisStatus())
+})
+
 // Global error handler — MUST have 4 params and be registered after all routes.
 // Re-injects CORS headers so browsers can read error bodies across origins.
 app.use(
@@ -404,11 +427,7 @@ app.use(
     _next: express.NextFunction,
   ) => {
     const requestOrigin = req.headers.origin as string | undefined
-    if (
-      !requestOrigin ||
-      CORS_ALLOWLIST.length === 0 ||
-      CORS_ALLOWLIST.includes(requestOrigin)
-    ) {
+    if (isOriginAllowed(requestOrigin)) {
       res.header("Access-Control-Allow-Origin", requestOrigin ?? "*")
       res.header("Vary", "Origin")
     }

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "IPC Health",
+    "postcode": "3021",
+    "address": "1 Andrea Street",
+    "service_type": "support_coordination",
+    "phone": "1300 472 432",
+    "website": "https://www.ipchealth.com.au/",
+    "lat": -37.7432,
+    "lon": 144.7986
+  },
+  {
+    "name": "DPV Health",
+    "postcode": "3083",
+    "address": "Suite 2, 1010 Plenty Road",
+    "service_type": "assessment",
+    "phone": "1300 234 263",
+    "website": "https://www.dpvhealth.org.au/",
+    "lat": -37.6959,
+    "lon": 145.0599
+  },
+  {
+    "name": "Eastern Health (Box Hill Hospital)",
+    "postcode": "3128",
+    "address": "8 Arnold Street",
+    "service_type": "behaviour_support",
+    "phone": "1300 342 255",
+    "website": "https://www.easternhealth.org.au/",
+    "lat": -37.8167,
+    "lon": 145.1333
+  },
+  {
+    "name": "Each (EACH)",
+    "postcode": "3134",
+    "address": "42 New Street",
+    "service_type": "behaviour_support",
+    "phone": "1300 003 224",
+    "website": "https://www.each.com.au/",
+    "lat": -37.7987,
+    "lon": 145.2351
+  },
+  {
+    "name": "Better Health Network",
+    "postcode": "3192",
+    "address": "Keys Street",
+    "service_type": "behaviour_support",
+    "phone": "132 246",
+    "website": "https://www.bhn.org.au/",
+    "lat": -37.9694,
+    "lon": 145.0481
+  },
+  {
+    "name": "Barwon Health (University Hospital Geelong)",
+    "postcode": "3220",
+    "address": "Ryrie Street",
+    "service_type": "behaviour_support",
+    "phone": "(03) 4215 0000",
+    "website": "https://www.barwonhealth.org.au/",
+    "lat": -38.1583,
+    "lon": 144.35
+  }
+]

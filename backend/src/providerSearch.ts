@@ -3,6 +3,11 @@ import { searchGooglePlaces } from "./googlePlacesSearch"
 import { searchNHSD } from "./nhsdSearch"
 import { buildOfficialPathways, buildSourceSequence } from "./providerRouting"
 import { searchVerifiedProviders } from "./verifiedProvidersSearch"
+import {
+  filterNdisByLocation,
+  isNdisRelatedSearch,
+  priorizeNdisProviders,
+} from "./ndisProvidersSearch"
 
 // Provider type is defined in ./types and re-exported here for consumers
 export type { Provider } from "./types"
@@ -440,6 +445,20 @@ export async function findNearbyProviders(
   const official_pathways = buildOfficialPathways(searchQuery, selectedServices)
   const source_sequence = buildSourceSequence(selectedServices)
 
+  // Check if this is NDIS-related and prioritize curated providers
+  const isNdis = isNdisRelatedSearch(
+    selectedServices.map((s) => s.id),
+    selectedServices,
+  )
+
+  // If NDIS-related, fetch curated NDIS providers immediately
+  if (isNdis) {
+    const ndisProviders = filterNdisByLocation(center.lat, center.lon, radiusKm)
+    if (ndisProviders.length > 0) {
+      return { center, providers: ndisProviders, official_pathways, source_sequence }
+    }
+  }
+
   for (const source of source_sequence) {
     try {
       if (source === "verified") {
@@ -450,6 +469,15 @@ export async function findNearbyProviders(
           radiusKm,
         )
         if (providers.length > 0) {
+          // If NDIS-related, augment verified results with NDIS providers
+          if (isNdis) {
+            const ndisProviders = filterNdisByLocation(center.lat, center.lon, radiusKm)
+            const combined = priorizeNdisProviders(
+              [...ndisProviders, ...providers],
+              true,
+            )
+            return { center, providers: combined, official_pathways, source_sequence }
+          }
           return { center, providers, official_pathways, source_sequence }
         }
       }

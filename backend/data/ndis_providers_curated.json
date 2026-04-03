@@ -1,0 +1,182 @@
+[
+  {
+    "name": "Feros Care - NDIS Support Coordination",
+    "postcode": "3000",
+    "address": "Level 5, 172 Phillip Street, Melbourne",
+    "suburb": "Melbourne",
+    "service_type": "support_coordination",
+    "service_types": [
+      "support_coordination",
+      "personal_care"
+    ],
+    "phone": "1800 317 669",
+    "email": "ndis@feroscare.com.au",
+    "website": "https://feroscare.com.au/",
+    "lat": -37.813,
+    "lon": 144.9747,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "IPC Health Disability Services",
+    "postcode": "3021",
+    "address": "1 Andrea Street, Williamstown",
+    "suburb": "Williamstown",
+    "service_type": "support_coordination",
+    "service_types": [
+      "support_coordination",
+      "community_participation"
+    ],
+    "phone": "1300 472 432",
+    "email": "referral@ipchealth.com.au",
+    "website": "https://www.ipchealth.com.au/",
+    "lat": -37.8609,
+    "lon": 144.9131,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.322Z"
+  },
+  {
+    "name": "Autism Spectrum Australia (Aspect) - Melbourne",
+    "postcode": "3066",
+    "address": "63 Whitehorse Road, Balwyn",
+    "suburb": "Balwyn",
+    "service_type": "behavior_support",
+    "service_types": [
+      "behavior_support",
+      "assessment"
+    ],
+    "phone": "1800 277 328",
+    "email": "ndis@autismspectrum.org.au",
+    "website": "https://www.autismspectrum.org.au/",
+    "lat": -37.8177,
+    "lon": 145.0989,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "DPV Health - NDIS Support Coordination",
+    "postcode": "3083",
+    "address": "Suite 2, 1010 Plenty Road, Bundoora",
+    "suburb": "Bundoora",
+    "service_type": "support_coordination",
+    "service_types": [
+      "support_coordination",
+      "assessment"
+    ],
+    "phone": "1300 234 263",
+    "email": "info@dpvhealth.org.au",
+    "website": "https://www.dpvhealth.org.au/",
+    "lat": -37.7081,
+    "lon": 145.0477,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "OctetMeadows - Community Participation",
+    "postcode": "3105",
+    "address": "Unit 1, 127 Mountain Highway, Boronia",
+    "suburb": "Boronia",
+    "service_type": "community_participation",
+    "service_types": [
+      "community_participation",
+      "employment_support"
+    ],
+    "phone": "1300 628 388",
+    "email": "ndis@octetmeadows.org.au",
+    "website": "https://www.octetmeadows.org.au/",
+    "lat": -37.8514,
+    "lon": 145.3778,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "Eastern Health - Box Hill Disability Services",
+    "postcode": "3128",
+    "address": "8 Arnold Street, Box Hill",
+    "suburb": "Box Hill",
+    "service_type": "behavior_support",
+    "service_types": [
+      "behavior_support",
+      "therapy"
+    ],
+    "phone": "1300 342 255",
+    "email": "ndis@easternhealth.org.au",
+    "website": "https://www.easternhealth.org.au/",
+    "lat": -37.8167,
+    "lon": 145.1333,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "EACH - Disability Support Melbourne",
+    "postcode": "3134",
+    "address": "42 New Street, Ringwood",
+    "suburb": "Ringwood",
+    "service_type": "behavior_support",
+    "service_types": [
+      "behavior_support",
+      "community_participation"
+    ],
+    "phone": "1300 003 224",
+    "email": "ndis@each.com.au",
+    "website": "https://www.each.com.au/",
+    "lat": -37.8059,
+    "lon": 145.2315,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "Summer Foundation - Supported Living",
+    "postcode": "3144",
+    "address": "PO Box 200, Balwyn North",
+    "suburb": "Balwyn North",
+    "service_type": "personal_care",
+    "service_types": [
+      "personal_care",
+      "community_participation"
+    ],
+    "phone": "1300 309 476",
+    "email": "victoria@summerfoundation.org.au",
+    "website": "https://summerfoundation.org.au/",
+    "lat": -37.8244,
+    "lon": 145.1177,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "Scope - Therapy and Support Services",
+    "postcode": "3181",
+    "address": "8 Maplewood Drive, Glen Waverley",
+    "suburb": "Glen Waverley",
+    "service_type": "therapy",
+    "service_types": [
+      "therapy",
+      "employment_support"
+    ],
+    "phone": "1300 472 746",
+    "email": "ndis@scopevic.org.au",
+    "website": "https://www.scopevic.org.au/",
+    "lat": -37.8807,
+    "lon": 145.167,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  },
+  {
+    "name": "Barwon Health - Disability Services Geelong",
+    "postcode": "3220",
+    "address": "Ryrie Street, Geelong",
+    "suburb": "Geelong",
+    "service_type": "therapy",
+    "service_types": [
+      "therapy",
+      "personal_care"
+    ],
+    "phone": "(03) 4215 0000",
+    "email": "ndis@barwonhealth.org.au",
+    "website": "https://www.barwonhealth.org.au/",
+    "lat": -38.15,
+    "lon": 144.3667,
+    "ndia_registered": true,
+    "last_updated": "2026-04-03T11:49:30.323Z"
+  }
+]
